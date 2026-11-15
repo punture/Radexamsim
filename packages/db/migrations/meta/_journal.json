@@ -22,6 +22,13 @@
       "when": 1794709128020,
       "tag": "0002_learning_plan_assignments",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794712201990,
+      "tag": "0003_attempt_version_binding",
+      "breakpoints": true
     }
   ]
 }

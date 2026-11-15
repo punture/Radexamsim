@@ -20,3 +20,6 @@ tools/ingestion/.venv/
 tools/ingestion/out/
 __pycache__/
 .next-e2e
+evals/reports/.vitest-regression.json
+evals/owner-ratings/packets/*.key.json.bak
+evals/reports/*.json

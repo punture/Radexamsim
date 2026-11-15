@@ -21,7 +21,10 @@
     "build": "pnpm -r run build",
     "e2e": "pnpm --filter @sim/web run e2e",
     "evals": "pnpm --filter @sim/evals run evals",
-    "check:leaks": "node scripts/check-client-bundle-leaks.mjs"
+    "check:leaks": "node scripts/check-client-bundle-leaks.mjs",
+    "evals:lock": "pnpm --filter @sim/evals run evals:lock",
+    "evals:blind": "pnpm --filter @sim/evals run evals:blind",
+    "evals:import-ratings": "pnpm --filter @sim/evals run evals:import-ratings"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",

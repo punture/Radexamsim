@@ -103,6 +103,23 @@ describe("deterministic post-processing of model output", () => {
     const p = postprocessPass(base([j("e-m1-occlusion", "not_demonstrated")]), stroke, opps, a.segments, timelineOf(a));
     expect(p.judgments.get("e-m1-occlusion")!.status).toBe("not_assessable");
   });
+  it("never turns low-confidence transcription into a confident mark (ASR uncertainty)", () => {
+    const low = seg("There is early hypodensity in the lift MCA territory. The CT angiogram is normal.", 60_000, 0.35);
+    const la = attempt([low]);
+    const lopps = opportunitiesFor(la);
+    const lq = (t: string) => ({ segmentId: low.id, charStart: low.text.indexOf(t), charEnd: low.text.indexOf(t) + t.length, quote: t });
+    const p = postprocessPass(
+      base([j("e-hypodensity", "incorrect", [lq("early hypodensity in the lift MCA territory")]), j("e-laterality", "not_demonstrated")], [{ elementId: "e-hypodensity", criterion: "states the non-contrast CT is normal", evidence: [lq("The CT angiogram is normal")], context: "", consequence: "", committed: true, correctedLater: false }]),
+      stroke,
+      lopps,
+      la.segments,
+      timelineOf(la),
+    );
+    expect(p.judgments.get("e-hypodensity")!.status).toBe("uncertain");
+    expect(p.judgments.get("e-laterality")!.status).toBe("uncertain");
+    expect(p.issues.map((i) => i.code)).toEqual(expect.arrayContaining(["low_confidence_evidence", "low_confidence_omission", "unsafe_flag_low_confidence"]));
+    expect(p.unsafeFlags[0]!.committed).toBe(false); // visible, but cannot cap the rating
+  });
   it("drops unsafe flags that do not cite an approved criterion", () => {
     const p = postprocessPass(base([], [{ elementId: "e-diagnosis", criterion: "talks too slowly", evidence: [q("No hemorrhage")], context: "", consequence: "", committed: true, correctedLater: false }]), stroke, opps, a.segments, timelineOf(a));
     expect(p.unsafeFlags).toEqual([]);

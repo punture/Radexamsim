@@ -68,6 +68,9 @@ importers:
       fastify:
         specifier: ^5.12.8
         version: 5.12.8
+      fflate:
+        specifier: ^0.8.3
+        version: 0.8.3
       jose:
         specifier: ^6.2.17
         version: 6.2.17
@@ -158,6 +161,34 @@ importers:
       esbuild:
         specifier: ^0.28.2
         version: 0.28.2
+      fflate:
+        specifier: ^0.8.3
+        version: 0.8.3
+
+  evals:
+    dependencies:
+      '@sim/ai':
+        specifier: workspace:*
+        version: link:../packages/ai
+      '@sim/clinical-content':
+        specifier: workspace:*
+        version: link:../packages/clinical-content
+      '@sim/contracts':
+        specifier: workspace:*
+        version: link:../packages/contracts
+      '@sim/exam-engine':
+        specifier: workspace:*
+        version: link:../packages/exam-engine
+      '@sim/fixtures':
+        specifier: workspace:*
+        version: link:../fixtures
+      zod:
+        specifier: 'catalog:'
+        version: 4.6.7
+    devDependencies:
+      tsx:
+        specifier: ^4.23.15
+        version: 4.23.15
 
   fixtures:
     dependencies:
@@ -1613,6 +1644,9 @@ packages:
       picomatch:
         optional: true
 
+  fflate@0.8.3:
+    resolution: {integrity: sha512-tbZNuJrLwGUp3zshBtdy4W+ORxZuIh8a5ilyIEQDC5rY1f3U20JMry0Ll3WBzU58EZKsEuJFXhb5gwv8CsPvgA==}
+
   find-my-way@9.10.0:
     resolution: {integrity: sha512-eru+uCPQ2g+nLBkf84MHP/KyNNMar0BDy0j+i8Fb72GF9/YHBZ58q7FODUtfVV7XU9nfRUHXSmaM8NmZcIbZ4Q==}
     engines: {node: '>=20'}
@@ -3028,6 +3062,8 @@ snapshots:
   fdir@6.5.0(picomatch@4.0.7):
     optionalDependencies:
       picomatch: 4.0.7
+
+  fflate@0.8.3: {}
 
   find-my-way@9.10.0:
     dependencies:

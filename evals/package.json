@@ -1,0 +1,27 @@
+{
+  "name": "@sim/evals",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "evals": "tsx src/cli.ts run",
+    "evals:lock": "tsx src/cli.ts lock",
+    "evals:blind": "tsx src/cli.ts blind-packet",
+    "evals:import-ratings": "tsx src/cli.ts import-ratings"
+  },
+  "dependencies": {
+    "@sim/ai": "workspace:*",
+    "@sim/clinical-content": "workspace:*",
+    "@sim/contracts": "workspace:*",
+    "@sim/exam-engine": "workspace:*",
+    "@sim/fixtures": "workspace:*",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "tsx": "^4.23.15"
+  }
+}

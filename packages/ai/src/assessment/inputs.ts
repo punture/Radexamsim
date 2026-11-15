@@ -37,6 +37,7 @@ export function timelineOf(a: AttemptData): CaseTimeline {
     renders: a.renders,
     utterances: a.utterances,
     candidateSegments: a.segments.map((s) => ({ id: s.id, startMs: s.startMs, endMs: s.endMs, text: s.text })),
+    closeReason: a.closeReason,
   };
 }
 

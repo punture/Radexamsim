@@ -1,0 +1,175 @@
+import type { ResponsePattern } from "../types";
+
+/** Patterns for the fictional fixture fx-spine-cord-compression. Pending owner approval. */
+const C = (text: string) => ({ kind: "candidate" as const, text });
+const Q = (questionId: string) => ({ kind: "question" as const, questionId });
+const F = (replyId: string) => ({ kind: "fact_reply" as const, replyId });
+const caseId = "fx-spine-cord-compression";
+
+export const SPINE_PATTERNS: ResponsePattern[] = [
+  {
+    id: "spine.strong.a",
+    caseId,
+    level: "strong",
+    description: "Complete description, leading diagnosis with differential, emergency and whole-spine imaging.",
+    tags: [],
+    turns: [
+      Q("q-open"),
+      C("Sagittal T2 and post-contrast T1 images of the thoracic spine show an enhancing posterior epidural soft-tissue mass at a mid-thoracic level, with compression of the spinal cord, which is displaced and narrowed."),
+      C("The leading diagnosis is epidural metastasis, with metastatic epidural spinal cord compression. The differential includes epidural abscess or hematoma, which are less likely without clinical support."),
+      Q("q-next"),
+      C("This is an emergency. I would call the team immediately and recommend urgent spine surgery consultation, and I would also image the entire spine with a whole spine MRI to look for other levels."),
+    ],
+    expected: {
+      elements: {
+        "s-mass": { status: ["demonstrated"] },
+        "s-compression": { status: ["demonstrated"] },
+        "s-diagnosis": { status: ["demonstrated"] },
+        "s-urgency": { status: ["demonstrated"], prompting: "standard_question" },
+        "s-whole-spine": { status: ["demonstrated"], prompting: "standard_question" },
+      },
+      global: ["strong", "exceptional"],
+      unsafeCriteria: [],
+      mustNotPass: false,
+    },
+  },
+  {
+    id: "spine.satisfactory.a",
+    caseId,
+    level: "satisfactory",
+    description: "Correct essentials with standard questions; no differential and no whole-spine imaging.",
+    tags: [],
+    turns: [
+      Q("q-open"),
+      C("There is an epidural mass in the thoracic spine causing cord compression."),
+      Q("q-ddx"),
+      C("Most likely metastatic disease."),
+      Q("q-next"),
+      C("I would call the team immediately because this needs urgent spine surgery consultation."),
+    ],
+    expected: {
+      elements: {
+        "s-mass": { status: ["demonstrated", "partially_demonstrated"] },
+        "s-compression": { status: ["demonstrated"] },
+        "s-diagnosis": { status: ["demonstrated", "partially_demonstrated"], prompting: "standard_question" },
+        "s-urgency": { status: ["demonstrated"], prompting: "standard_question" },
+        "s-whole-spine": { status: ["not_demonstrated"] },
+      },
+      global: ["meets_expected", "strong"],
+      unsafeCriteria: [],
+      mustNotPass: false,
+    },
+  },
+  {
+    id: "spine.borderline.a",
+    caseId,
+    level: "borderline",
+    description: "Vague description, does not commit to cord compression, no urgency.",
+    tags: ["hedging"],
+    turns: [
+      Q("q-open"),
+      C("There's something behind the cord in the thoracic spine. Maybe a mass? I'm not sure if it's pressing on the cord."),
+      Q("q-ddx"),
+      C("Could be a metastasis, or a disc."),
+      Q("q-next"),
+      C("I would discuss it with the referring team and suggest further imaging."),
+    ],
+    expected: {
+      elements: {
+        "s-mass": { status: ["partially_demonstrated", "uncertain"] },
+        "s-compression": { status: ["not_demonstrated", "uncertain", "partially_demonstrated"] },
+        "s-diagnosis": { status: ["partially_demonstrated", "demonstrated"] },
+        "s-urgency": { status: ["not_demonstrated"] },
+        "s-whole-spine": { status: ["not_demonstrated"] },
+      },
+      global: ["below_expected"],
+      unsafeCriteria: [],
+      mustNotPass: true,
+    },
+  },
+  {
+    id: "spine.poor.a",
+    caseId,
+    level: "poor",
+    description: "Denies cord compression, benign diagnosis, routine follow-up.",
+    tags: ["unsafe", "negation"],
+    turns: [
+      Q("q-open"),
+      C("The spinal cord looks normal. There's no cord compression. Maybe some degenerative change."),
+      Q("q-ddx"),
+      C("Probably a benign disc protrusion."),
+      Q("q-next"),
+      C("Routine follow-up in a few months."),
+    ],
+    expected: {
+      elements: {
+        "s-mass": { status: ["not_demonstrated", "incorrect"] },
+        "s-compression": { status: ["incorrect"] },
+        "s-diagnosis": { status: ["incorrect"] },
+        "s-urgency": { status: ["incorrect"] },
+        "s-whole-spine": { status: ["not_demonstrated"] },
+      },
+      global: ["unsafe"],
+      unsafeCriteria: ["states there is no cord compression", "recommends routine follow-up"],
+      mustNotPass: true,
+    },
+  },
+  {
+    id: "spine.consequential.intramedullary",
+    caseId,
+    level: "consequential_error",
+    description: "Misplaces the mass inside the cord (wrong compartment) despite appropriate urgency.",
+    tags: ["unsafe"],
+    turns: [
+      Q("q-open"),
+      C("There is an enhancing intramedullary mass within the thoracic cord, expanding the cord."),
+      Q("q-ddx"),
+      C("An intramedullary tumor such as an ependymoma or astrocytoma."),
+      Q("q-next"),
+      C("This needs an urgent neurosurgical opinion, and I would image the whole spine."),
+    ],
+    expected: {
+      elements: {
+        "s-mass": { status: ["incorrect"] },
+        "s-compression": { status: ["not_demonstrated", "incorrect"] },
+        "s-diagnosis": { status: ["incorrect", "not_demonstrated"] },
+        "s-urgency": { status: ["demonstrated", "partially_demonstrated"] },
+        "s-whole-spine": { status: ["demonstrated"] },
+      },
+      global: ["below_expected", "unsafe"],
+      unsafeCriteria: ["describes the mass as intramedullary"],
+      mustNotPass: true,
+    },
+  },
+  {
+    id: "spine.edge.unavailable",
+    caseId,
+    level: "edge_case",
+    description: "Requests prior and axial imaging (unavailable), then answers well.",
+    tags: ["unavailable_request"],
+    turns: [
+      Q("q-open"),
+      C("Do you have any prior imaging for comparison?"),
+      F("fr-prior"),
+      C("Are there axial images?"),
+      F("fr-axial"),
+      C("OK. On the sagittal images there is a posterior epidural mass at a mid-thoracic level compressing the spinal cord."),
+      Q("q-ddx"),
+      C("The leading diagnosis is epidural metastasis; the differential includes abscess."),
+      Q("q-next"),
+      C("This is an emergency, I would call the team immediately, and get a whole spine MRI."),
+    ],
+    expected: {
+      elements: {
+        "s-mass": { status: ["demonstrated"] },
+        "s-compression": { status: ["demonstrated"] },
+        "s-diagnosis": { status: ["demonstrated"] },
+        "s-urgency": { status: ["demonstrated"] },
+        "s-whole-spine": { status: ["demonstrated"] },
+      },
+      global: ["strong", "meets_expected"],
+      unsafeCriteria: [],
+      mustNotPass: false,
+    },
+  },
+];

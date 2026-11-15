@@ -243,6 +243,29 @@ describe("opportunities and prompt dependence", () => {
     expect(o.assessable).toBe(false);
     expect(o.notAssessableReasons).toContain("question_interrupted_before_heard");
   });
+  it("applies minimum exposure when the case was cut off, but not after a completed answer closed normally", () => {
+    const spine = loadFixtureCase("fx-spine-cord-compression");
+    const ws = spine.rubric.elements.find((e) => e.id === "s-whole-spine")!; // min exposure 10 s, after q-next
+    const t: CaseTimeline = {
+      caseStartedAtMs: 0,
+      caseEndedAtMs: 106_000,
+      endedByTechnicalFailure: false,
+      stageReveals: [{ stageId: "st-mri", atMs: 0 }],
+      renders: [{ assetId: "mr-t2-sag", status: "rendered", atMs: 1000 }],
+      utterances: [utt({ text: "What would you do next?", refId: "q-next", playbackStartedAtMs: 100_000, playbackEndedAtMs: 101_000 })],
+      candidateSegments: [{ id: "seg-answer-0001", startMs: 101_500, endMs: 105_000, text: "Urgent spine surgery consultation." }],
+    };
+    // Station time ran out 5 s after the question: the candidate was cut off.
+    const cutOff = computeOpportunity(spine, { ...t, closeReason: "time_expired" }, ws);
+    expect(cutOff.assessable).toBe(false);
+    expect(cutOff.notAssessableReasons).toContain("insufficient_time_after_opportunity");
+    // The candidate answered and the examiner moved on: a genuine opportunity (omission is assessable).
+    const answered = computeOpportunity(spine, { ...t, closeReason: "examiner_completed" }, ws);
+    expect(answered.assessable).toBe(true);
+    // No response at all before a normal close still needs the minimum exposure.
+    const silent = computeOpportunity(spine, { ...t, candidateSegments: [], closeReason: "examiner_completed" }, ws);
+    expect(silent.assessable).toBe(false);
+  });
   it("classifies evidence after an examiner-supplied hint as examiner_supplied (only heard words count)", () => {
     const t = baseTimeline();
     const hint = "There is a hyperdense left middle cerebral artery; what does that suggest?";

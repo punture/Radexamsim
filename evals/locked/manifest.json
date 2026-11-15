@@ -1,0 +1,37 @@
+{
+  "lockedAt": "2026-11-15T03:16:43.812Z",
+  "gitCommit": "83562ce+uncommitted",
+  "promptVersions": {
+    "case_author": "case_author@2026-11-15.1",
+    "clinical_critic": "clinical_critic@2026-11-15.1",
+    "rubric_critic": "rubric_critic@2026-11-15.1",
+    "live_examiner": "live_examiner@2026-11-15.1",
+    "evidence_extractor": "evidence_extractor@2026-11-15.1",
+    "assessor_a": "assessor@2026-11-15.1",
+    "assessor_b": "assessor@2026-11-15.1",
+    "adjudicator": "adjudicator@2026-11-15.1",
+    "feedback_writer": "feedback_writer@2026-11-15.1",
+    "learning_plan": "learning_plan@2026-11-15.1"
+  },
+  "finalFamilies": [
+    "fx-family-stroke"
+  ],
+  "patterns": {
+    "stroke.strong.a": "3d9fcb4bc68f919f1f7b9c0aa3b60cec346f592a543659a6e7aac7da9de86a49",
+    "stroke.strong.b": "aa10064ec8b18acaa420160a47c3c4be71a52299ed0e6bb098bf1d838dc2dd0c",
+    "stroke.satisfactory.a": "bd20302e55e2ed1d88e71a2d56ec2f73f5251da17b574a29ad37304abd653573",
+    "stroke.borderline.a": "657dbd0a20beb4660e566dd864c3eb2579063567b5374d72d57219a594c39471",
+    "stroke.poor.a": "3627b57373c5f827d032b0c1de33655dffb933dce1c9266d0e787d1c37d3e2af",
+    "stroke.consequential.laterality": "3269b67684b90fa2baeb3f6e80f17954dc6e8cd4b67007ea5a614abd74f884f7",
+    "stroke.edge.negation": "bf9fbcdac8bfdff744115be0169bd325ab2917cd32783da0d1337b2dfcd2022f",
+    "stroke.edge.self_correction": "4c43f0885bc0573c1afa600f084240694fb1a5b100bd9c39c273608bc777788f",
+    "stroke.edge.examiner_supplied": "49ea37a5a9f130c76d10502bd720f47686d167f33af93724983a1ff1bde92a10",
+    "stroke.edge.render_failure": "be76d9b1dbad95d7efa48f8c678a4a744d4398b9f72bb12cda0e189cb36322e4",
+    "stroke.edge.unavailable_request": "cb93d92e9fc2ad2c42d28261c68d451727334229681d860635e48969cba1c0ae",
+    "stroke.edge.asr_uncertain": "eb903a66a854dc1fb82f837c19127e5de8b12d771f092c583990ad70fc73c145",
+    "stroke.edge.prompt_injection": "c3c8ffce17f63919bfceb2415a4759afd0a25d790fdc7b6b29160c82cc0decf7"
+  },
+  "cases": {
+    "fx-stroke-lmca@v1": "428771179611e1a6c0dbf5be17ccd9680c1feaa8c33a1bc362f131863a8fa561"
+  }
+}

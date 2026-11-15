@@ -2,6 +2,9 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createTestDatabase } from "../src/testing";
 import {
   appendEvent,
+  caseAttempts,
+  caseVersions,
+  cases,
   claimJob,
   completeJob,
   createDb,
@@ -103,6 +106,17 @@ describe("immutability", () => {
       .returning();
     await rejectsWithDb(db.update(transcriptSegments).set({ text: "right MCA infarct" }).where(eq(transcriptSegments.id, seg!.id)), /immutable/);
     await db.update(transcriptSegments).set({ status: "superseded" }).where(eq(transcriptSegments.id, seg!.id));
+  });
+  it("keeps a case attempt bound to its original case version when the owner revises the case", async () => {
+    await db.insert(cases).values({ caseId: "case-binding", caseFamilyId: "family-binding" });
+    const version = (n: number) => ({ versionId: `case-binding@v${n}`, caseId: "case-binding", versionNumber: n, payload: {} as never, publicationStatus: "published" as const, clinicalContentHash: `h${n}`, rubricHash: `r${n}`, assetsHash: `a${n}`, isFixture: true, createdBy: "test" });
+    await db.insert(caseVersions).values([version(1), version(2)]);
+    const [at] = await db.insert(caseAttempts).values({ sessionId, userId, caseVersionId: "case-binding@v1", caseFamilyId: "family-binding", ordinal: 0 }).returning();
+    await rejectsWithDb(db.update(caseAttempts).set({ caseVersionId: "case-binding@v2" }).where(eq(caseAttempts.id, at!.id)), /binding is immutable/);
+    // Progress fields remain writable.
+    await db.update(caseAttempts).set({ status: "active", startedAtMs: 1000 }).where(eq(caseAttempts.id, at!.id));
+    const [row] = await db.select().from(caseAttempts).where(eq(caseAttempts.id, at!.id));
+    expect(row!.caseVersionId).toBe("case-binding@v1");
   });
   it("forbids updating or deleting usage ledger entries", async () => {
     const [row] = await db.insert(usageLedger).values({ userId, kind: "allot", minutes: 60, idempotencyKey: "allot:test", reason: "test", actor: "test" }).returning();

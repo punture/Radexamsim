@@ -28,7 +28,15 @@ export type CaseTimeline = {
   renders: { assetId: string; status: "rendered" | "failed"; atMs: number }[];
   utterances: ExaminerUtterance[];
   candidateSegments: { id: string; startMs: number; endMs: number; text: string }[];
+  /**
+   * How the case closed. A case closed by the examiner after the candidate finished, or at
+   * the candidate's request, gave a genuine opportunity even if it was shorter than the
+   * element's minimum exposure. Time expiry and technical failure do not.
+   */
+  closeReason?: string | null;
 };
+
+const NORMAL_CLOSE_REASONS = new Set(["examiner_completed", "candidate_requested"]);
 
 function firstRender(timeline: CaseTimeline, assetId: string): number | null {
   const r = timeline.renders.filter((x) => x.assetId === assetId && x.status === "rendered").sort((a, b) => a.atMs - b.atMs)[0];
@@ -120,7 +128,12 @@ export function computeOpportunity(cv: CaseVersion, timeline: CaseTimeline, el: 
   }
 
   const exposureMs = openedAtMs === null ? 0 : candidateExposureAfter(timeline, openedAtMs);
-  if (openedAtMs !== null && exposureMs < rule.minExposureSeconds * 1000) reasons.push("insufficient_time_after_opportunity");
+  // Minimum exposure protects candidates who were cut off. It does not apply when the
+  // candidate responded after the opportunity opened and the case then closed normally
+  // (the examiner moved on after the candidate finished, or the candidate asked to move on).
+  const respondedAfter = openedAtMs !== null && timeline.candidateSegments.some((s) => s.endMs > openedAtMs!);
+  const closedNormally = !timeline.endedByTechnicalFailure && !!timeline.closeReason && NORMAL_CLOSE_REASONS.has(timeline.closeReason);
+  if (openedAtMs !== null && exposureMs < rule.minExposureSeconds * 1000 && !(respondedAfter && closedNormally)) reasons.push("insufficient_time_after_opportunity");
   if (timeline.endedByTechnicalFailure && openedAtMs !== null && exposureMs < rule.minExposureSeconds * 1000 * 2) {
     reasons.push("case_ended_by_technical_failure");
   }

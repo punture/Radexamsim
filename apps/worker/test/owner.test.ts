@@ -175,5 +175,14 @@ describe("withdrawal, appeals and owner decisions", () => {
     const w = await owner.req("POST", "/api/owner/cases/fx-stroke-lmca/withdraw", { reason: "Test withdrawal of unsafe content" });
     expect(w.json.affectedAttempts).toBeGreaterThan(0);
     expect((await learner.req("GET", `/api/media/${handle}/0`)).status).toBe(404);
+
+    // Withdrawn content is never selected for a new examination.
+    for (let i = 0; i < 3; i++) {
+      const next = await learner.req("POST", "/api/sessions", { profileVersionId: "abr-dr-neuro-oral@2026-11-15.1", mode: "exam", inputMode: "voice" });
+      expect(next.status, JSON.stringify(next.json)).toBe(200);
+      const bound = await env.db.select({ v: caseAttempts.caseVersionId }).from(caseAttempts).where(eq(caseAttempts.sessionId, next.json.sessionId as string));
+      expect(bound.length).toBeGreaterThan(0);
+      expect(bound.some((b) => b.v.startsWith("fx-stroke-lmca@"))).toBe(false);
+    }
   }, 60_000);
 });

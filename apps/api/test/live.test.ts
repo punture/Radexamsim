@@ -116,6 +116,48 @@ describe("live examination flow (demo case, deterministic examiner)", () => {
     expect((await other.req("GET", `/api/sessions/${sessionId}/debrief`)).status).toBe(404);
   }, 30_000);
 
+  it("resumes after a network reconnect without repeating speech, resetting the clock or duplicating actions", async () => {
+    const http = new Http(env.base);
+    await http.login("learner@example.test", "learner-dev-password-123");
+    const client = new TestClient();
+    const sessionId = await newLiveSession(http, { profileVersionId: "abr-dr-neuro-oral@2026-11-15.1", mode: "exam", inputMode: "voice" }, client);
+    client.send({ type: "start_station", commandId: client.nextId() });
+    await client.waitFor((m) => m.type === "examiner_utterance");
+    await new Promise((r) => setTimeout(r, 200));
+    const [before] = await env.db.select().from(stationSessions).where(eq(stationSessions.id, sessionId));
+    const uttsBefore = (await env.db.select().from(examinerUtterances).where(eq(examinerUtterances.sessionId, sessionId))).length;
+    client.close();
+    await new Promise((r) => setTimeout(r, 300));
+
+    const client2 = new TestClient();
+    const t = await http.req("POST", `/api/sessions/${sessionId}/ws-ticket`);
+    await client2.connect(`${env.base.replace("http", "ws")}/ws`, t.json.ticket);
+    const st = await client2.waitFor((m) => m.type === "state");
+    expect(st.type === "state" && st.state.status).toBe("active");
+    // A client that re-sends start_station after reconnecting cannot restart the station.
+    client2.send({ type: "start_station", commandId: client2.nextId() });
+    await new Promise((r) => setTimeout(r, 600));
+    expect((await env.db.select().from(examinerUtterances).where(eq(examinerUtterances.sessionId, sessionId))).length).toBe(uttsBefore);
+    const [mid] = await env.db.select().from(stationSessions).where(eq(stationSessions.id, sessionId));
+    expect(mid!.startedAt?.getTime()).toBe(before!.startedAt?.getTime());
+    // A disconnect shorter than the grace period neither restarts nor pauses the clock.
+    expect(mid!.clock.runningSinceMs).toBe(before!.clock.runningSinceMs);
+    expect(mid!.clock.pauses.length).toBe(before!.clock.pauses.length);
+
+    // The examination continues on the new connection.
+    const n = client2.messages.length;
+    client2.say("I have described the main findings. That's all.");
+    const u = await client2.waitFor((m) => m.type === "examiner_utterance", 8000, n);
+    expect(u.type === "examiner_utterance" && u.text.length).toBeGreaterThan(0);
+    client2.send({ type: "request_end_station", commandId: client2.nextId() });
+    await client2.waitFor((m) => m.type === "station_ended", 8000, n);
+    client2.close();
+    const events = await env.db.select().from(sessionEvents).where(eq(sessionEvents.sessionId, sessionId));
+    expect(events.filter((e) => e.type === "connection.opened").length).toBe(2);
+    expect(events.filter((e) => e.type === "session.started").length).toBe(1);
+    expect(events.filter((e) => e.type === "case.started").length).toBe(1);
+  }, 30_000);
+
   it("treats a failed image render as a technical limitation and keeps the session going", async () => {
     const http = new Http(env.base);
     await http.login("learner@example.test", "learner-dev-password-123");

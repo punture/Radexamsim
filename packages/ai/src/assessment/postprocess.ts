@@ -57,6 +57,10 @@ function matchesCriterion(criterion: string, claims: string[]): string | null {
   return null;
 }
 
+/** Provider confidence below which recognized words cannot support a confident mark. */
+export const LOW_ASR_CONFIDENCE = 0.6;
+const isLowConfidence = (s: CandidateSegment | undefined) => !!s && s.confidence !== null && s.confidence < LOW_ASR_CONFIDENCE;
+
 export function postprocessPass(
   raw: AssessorLlmOutput,
   cv: CaseVersion,
@@ -107,6 +111,12 @@ export function postprocessPass(
       status = "uncertain";
       uncertaintyReason = "cited evidence could not be verified against the transcript";
     }
+    // Speech-recognition uncertainty: no confident mark may rest only on low-confidence words.
+    if (POSITIVE.includes(status) && evidence.length > 0 && evidence.every((e) => isLowConfidence(segMap.get(e.segmentId)))) {
+      issue("low_confidence_evidence", el.id, `status ${status} rests only on low-confidence transcription; marked uncertain for transcript review`);
+      status = "uncertain";
+      uncertaintyReason = "the only supporting words came from low-confidence speech recognition; the transcript needs review";
+    }
     // Evidence must come after the material it depends on was actually displayed.
     if ((status === "demonstrated" || status === "partially_demonstrated") && el.requiredAssetIds.length > 0) {
       if (opp.assetsRenderedAtMs === null) {
@@ -128,6 +138,15 @@ export function postprocessPass(
     if (status === "not_demonstrated" && !opp.assessable) {
       status = "not_assessable";
       issue("omission_without_opportunity", el.id, `omission converted to not_assessable (${opp.notAssessableReasons.join(", ")})`);
+    }
+    // An omission cannot be confirmed if what the candidate said in that window was poorly recognized.
+    if (status === "not_demonstrated" && opp.openedAtMs !== null) {
+      const openedAt = timeline.caseStartedAtMs + opp.openedAtMs;
+      if (segments.some((sg) => sg.endMs > openedAt && isLowConfidence(sg))) {
+        status = "uncertain";
+        uncertaintyReason = "speech recognition confidence was low during this opportunity, so an omission cannot be confirmed";
+        issue("low_confidence_omission", el.id, "omission converted to uncertain: low-confidence transcription during the opportunity");
+      }
     }
     if (status === "not_demonstrated" && j.opportunityId !== opp.id) {
       issue("omission_opportunity_mismatch", el.id, "omission did not cite the element's opportunity record; corrected");
@@ -196,7 +215,10 @@ export function postprocessPass(
       issue("unsafe_flag_unsupported", f.elementId, "unsafe flag without verifiable words; dropped", "error");
       continue;
     }
-    unsafeFlags.push({ elementId: f.elementId, criterion, evidence: ev, context: f.context.slice(0, 400), consequence: f.consequence.slice(0, 400) || "Potential patient harm.", committed: f.committed, correctedLater: f.correctedLater });
+    // A flag resting only on low-confidence words stays visible but cannot cap the rating.
+    const lowConf = ev.every((e) => isLowConfidence(segMap.get(e.segmentId)));
+    if (lowConf) issue("unsafe_flag_low_confidence", f.elementId, "unsafe flag rests only on low-confidence transcription; recorded as not committed pending transcript review");
+    unsafeFlags.push({ elementId: f.elementId, criterion, evidence: ev, context: `${lowConf ? "[low-confidence transcription] " : ""}${f.context}`.slice(0, 400), consequence: f.consequence.slice(0, 400) || "Potential patient harm.", committed: f.committed && !lowConf, correctedLater: f.correctedLater });
   }
 
   const domainRatings: DomainRating[] = raw.domainRatings.map((d) => ({
