@@ -24,7 +24,8 @@
     "check:leaks": "node scripts/check-client-bundle-leaks.mjs",
     "evals:lock": "pnpm --filter @sim/evals run evals:lock",
     "evals:blind": "pnpm --filter @sim/evals run evals:blind",
-    "evals:import-ratings": "pnpm --filter @sim/evals run evals:import-ratings"
+    "evals:import-ratings": "pnpm --filter @sim/evals run evals:import-ratings",
+    "intake": "bash scripts/intake.sh"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
