@@ -28,7 +28,7 @@ These were found by reading and running the code on 2026-11-15. Each must be res
 |---|---|---|---|
 | B1 | **Production sign-in is not wired end to end.** In production the API requires `AUTH_PROVIDER=supabase` and accepts Supabase access tokens as `Authorization: Bearer`. The web app only implements the local email/password form and the local session cookie. It never sends a bearer token. | `apps/api/src/config.ts` (refuses `local` in production); `apps/api/src/auth/plugin.ts`; `apps/web/lib/api.ts`; `apps/web/components/AuthForm.tsx` | With the current code, a production configuration has no working way to sign in from the browser. A managed-auth sign-in flow must be added to the web app, including how tokens reach the API through the `/api` rewrite and the WebSocket ticket call. |
 | B2 | **The build artifacts for the API and the worker do not start.** `pnpm build` bundles with esbuild `--packages=external`, which leaves the workspace packages as TypeScript source. `node dist/main.js` then fails under Node 22: `ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX: TypeScript parameter property is not supported in strip-only mode` in `packages/storage/src/index.ts`. Reproduced for both services; the test bundles were deleted afterwards. | `apps/api/package.json`, `apps/worker/package.json` (`build`, `start`) | Until the bundling is fixed, the services can only run through `tsx`, as the end-to-end harness does (`pnpm --filter @sim/api exec tsx src/main.ts`). `tsx` is a development dependency, so the runtime image must include development dependencies. Engineering decision: fix the bundle (include workspace packages) or run under `tsx` deliberately. |
-| B3 | **Storage is the local filesystem only.** `LocalFsStorage` is the only driver; `STORAGE_DRIVER` accepts only `local-fs` and is not read. No S3-compatible driver exists. `packages/storage/src/index.ts` refers to `docs/runbooks/STORAGE.md`, which does not exist. | `packages/storage/src/index.ts`; `apps/api/src/deps.ts`; `apps/worker/src/deps.ts` | The API and the worker must mount the **same** private volume at the same absolute `STORAGE_LOCAL_ROOT`: the worker writes exports that the API serves, and the API writes imported images. Versioning and encryption have to come from the volume or host (see BACKUP_RESTORE.md). This limits the deployment to one host or one shared volume. |
+| B3 | **Partly resolved: the S3 storage driver has not been used with a real provider.** `STORAGE_DRIVER=s3` stores objects in one private S3-compatible bucket shared by the API and the worker, with server-side encryption and a startup check that refuses a publicly readable or listable bucket ([STORAGE.md](STORAGE.md)). It is tested against moto, a local S3 implementation (`pnpm test:s3`), but no provider account or credentials were available. | `packages/storage/src/s3.ts`; `scripts/test-s3.sh` | Before relying on it: choose a provider **[owner authorization]**, set up the bucket as in STORAGE.md §5, and run a staging smoke test (import a case, open its images, download an export). Until then, `local-fs` limits the deployment to one host or one volume shared by the API and the worker. |
 | B4 | **No production bootstrap for examination profiles.** Only the development seed inserts `exam_profiles` rows, and the seed refuses `NODE_ENV=production`. | `apps/api/src/services/seed.ts`; `apps/api/src/seed.ts` | A fresh production database has no examination profiles, so no session can be created. A reviewed, production-safe bootstrap is needed: profiles only, no fixtures, no development accounts. |
 | B5 | **The per-case "external AI processing" clearance is enforced only for authoring and critique.** The case author and both critics check `externalAiAllowed()`. The live examiner, the assessment pipeline and the optional feedback writer do not. | `packages/clinical-content/src/workflow.ts` (`publicationGate`, `externalAiAllowed`); `apps/worker/src/jobs/content.ts` (checked); `apps/worker/src/jobs/assess.ts`, `apps/worker/src/jobs/debrief.ts`, `apps/api/src/live/session.ts` (not checked) | With `LLM_PROVIDER=anthropic`, the text of every published case goes to the provider during live examining and assessment, together with learner transcripts: stage history, questions, key findings, rubric and reference material. This happens whether or not the case's flag is on. Publication requires privacy and rights clearance, but not this flag. No code path sends image pixels to a model. Owner decision before enabling a model with real cases: accept environment-wide processing of published case text, or require the code to honour the flag first. `docs/ARCHITECTURE.md` §5 and `docs/CASE_AUTHORING.md` §2.6 describe the flag as also covering model assessors; the code does not do that yet. |
 
@@ -51,7 +51,7 @@ These were found by reading and running the code on 2026-11-15. Each must be res
 | API and live examination | `apps/api` (Fastify, `@fastify/websocket`) | One Node process: HTTP `/api/*` and WebSocket `/ws` | PostgreSQL; live sessions and socket tickets are also held **in process memory** | **Exactly one process** (see 3.2) |
 | Worker | `apps/worker` | One Node process running the job loop | PostgreSQL `jobs` table | One process recommended (L4, L5) |
 | Database | `packages/db` (Drizzle, SQL migrations) | PostgreSQL 16 | All state | Managed service with point-in-time recovery |
-| Object storage | `packages/storage` | Local filesystem directory (`STORAGE_LOCAL_ROOT`) | Imported case images, learner exports | One volume shared by the API and the worker (B3) |
+| Object storage | `packages/storage` | A private directory (`local-fs`) or a private S3-compatible bucket (`s3`) | Imported case images, learner exports | `local-fs`: one volume shared by the API and the worker. `s3`: shared over the network (B3) |
 
 ### 3.1 Web app
 
@@ -167,19 +167,21 @@ These were found by reading and running the code on 2026-11-15. Each must be res
 
 ### 3.5 Private object storage
 
-- **Buckets** (directories under `STORAGE_LOCAL_ROOT`):
+Setup, settings and the S3 startup check are in [STORAGE.md](STORAGE.md). In brief:
+
+- **Buckets** (directories under `STORAGE_LOCAL_ROOT`, or key prefixes in the S3 bucket):
   - `derivatives`: imported, de-identified case images. Served only by `/api/media/:handle/:frame` and the owner preview route.
   - `exports`: learner data exports.
   - `recordings`: nothing writes here yet.
   - `quarantine`: the server never writes here. Quarantine lives on the owner's computer, under the ingestion tool's `QDIR`.
 - **Safeguards in the code.** Keys are checked against path traversal. Files are created `0600` and directories `0700`. Responses carry `Cache-Control: private, no-store`.
-- **Requirements for the volume:**
+- **Requirements for the volume (`local-fs`):**
   1. Persistent and encrypted at rest.
   2. Mounted by the API and the worker at the same absolute path.
   3. Readable only by the service account.
   4. Never exposed by a web server or a static-file route.
   5. Included in backups (BACKUP_RESTORE.md).
-- **A future S3-compatible driver** (not implemented) must keep the same rules: a private bucket with public access blocked, server-side encryption, versioning, and no long-lived URLs.
+- **Requirements for the bucket (`s3`):** public access blocked, default encryption with `S3_SSE` set explicitly, versioning with a noncurrent-version lifecycle rule, a least-privilege identity, and no CORS, website hosting or CDN (STORAGE.md §5). Both services refuse to start if the bucket serves the self-check's canary object, or lists it, without credentials (STORAGE.md §6).
 
 ### 3.6 External services (all optional; none configured; none exercised live)
 
@@ -432,7 +434,7 @@ Permissions-Policy: microphone=(self), camera=(), geolocation=()
 2. **Hosting provider and region**, including where learner data and transcripts may be stored and processed, and which privacy law applies.
 3. **Managed authentication:** provider and project settings (email confirmation, owner MFA, open or invite-only sign-up), and approval of the engineering work for B1.
 4. **Database hosting and backup policy:** recovery point and recovery time objectives, backup retention (BACKUP_RESTORE.md).
-5. **Storage:** a single host with a shared encrypted volume (supported now), or funding the S3-compatible driver (B3).
+5. **Storage:** a single host with a shared encrypted volume, or an S3-compatible provider and region for the `s3` driver (B3, STORAGE.md).
 6. **External processors.** For each of Anthropic, Deepgram, ElevenLabs and Stripe: whether it is used, its data-processing terms, and spending limits. Whether learner audio may go to Deepgram, to the learner's browser vendor, or to neither.
 7. **Model processing of published case text** in live examining and assessment, given B5.
 8. **Staging content:** no clinical content, or specific approved cases (§4).

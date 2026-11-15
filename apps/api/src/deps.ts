@@ -1,4 +1,3 @@
-import path from "node:path";
 import {
   AnthropicProvider,
   DeepgramAsrProvider,
@@ -11,7 +10,7 @@ import {
 } from "@sim/ai";
 import { createDb, modelCalls, type Db } from "@sim/db";
 import { FIXTURE_MEDIA_DIR } from "@sim/fixtures";
-import { LocalFsStorage, type ObjectStorage } from "@sim/storage";
+import { createStorage, type ObjectStorage } from "@sim/storage";
 import type { Config } from "./config";
 
 /**
@@ -39,9 +38,7 @@ export type Deps = {
 
 export function buildDeps(config: Config, overrides: Partial<Deps> = {}): Deps {
   const db = overrides.db ?? createDb(config.DATABASE_URL);
-  const storage =
-    overrides.storage ??
-    new LocalFsStorage(path.resolve(config.STORAGE_LOCAL_ROOT), config.ALLOW_FIXTURES ? { derivatives: FIXTURE_MEDIA_DIR } : {});
+  const storage = overrides.storage ?? createStorage(config, { readOnlyFallbacks: config.ALLOW_FIXTURES ? { derivatives: FIXTURE_MEDIA_DIR } : {} });
   const llm =
     overrides.llm !== undefined
       ? overrides.llm

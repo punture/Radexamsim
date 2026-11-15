@@ -30,7 +30,7 @@ flowchart LR
     WK[Worker<br/>durable job runner]
   end
   DB[(PostgreSQL 16<br/>RLS · append-only triggers · job queue)]
-  ST[(Private object storage<br/>adapter: local-fs today)]
+  ST[(Private object storage<br/>local-fs or S3-compatible bucket)]
   LLM[Anthropic API<br/>examiner · extractor · assessors · adjudicator · author · critics]
   ASR[Deepgram streaming ASR]
   TTS[ElevenLabs / Deepgram TTS]
@@ -59,7 +59,7 @@ flowchart LR
 | Clinical content | `packages/clinical-content` | Exam profiles, case validation, content hashing, change classification, publication workflow and gate. |
 | AI | `packages/ai` | LLM provider adapter and runner (structured output, retries, kill switches, spend caps, telemetry), the prompt registry, the assessment pipeline, the feedback composer, learning plans, and the speech adapters. |
 | DB | `packages/db` | Drizzle schema, SQL migrations (RLS, triggers), durable queue, event append, test-database helpers. |
-| Storage | `packages/storage` | Private object storage interface. `LocalFsStorage` and `MemoryStorage` exist; an S3-compatible driver is still to be written. |
+| Storage | `packages/storage` | Private object storage interface with `LocalFsStorage`, `S3Storage` (one private S3-compatible bucket, server-side encryption, startup privacy self-check) and `MemoryStorage` for tests. See `docs/runbooks/STORAGE.md`. |
 | Billing | `packages/billing` | Plans, Stripe event processing, the immutable usage ledger (reserve, release, consume, adjust, expire). |
 | Viewer, UI | `packages/viewer`, `packages/ui` | The image viewer used by the exam room, replay and owner preview; shared UI primitives. |
 | Fixtures | `fixtures` | Three fictional development cases with labelled placeholder images. Excluded from clinical scores, readiness and production counts. |
@@ -184,9 +184,9 @@ Details, including statuses, prompting levels, caps and board-specific display, 
 
 1. **Content (blocking):** the owner supplies the first approved cases (see the ten content-request slots). Then run de-identification with `tools/ingestion` and the authoring, critique and approval workflow.
 2. **Credentials (blocking live verification):** Anthropic, Deepgram, and ElevenLabs or Deepgram TTS, then measure real latency and cost, and run `pnpm evals -- --llm` for the model-assessor release gate. Supabase project for production auth. Stripe test keys for checkout and webhooks.
-3. An S3-compatible private storage driver with server-side encryption and versioning.
+3. ~~An S3-compatible private storage driver~~ Done; verify it with a real provider once one is chosen (STORAGE.md).
 4. Hosting decision and deployment (needs owner authorization): sticky WebSocket routing, managed PostgreSQL with point-in-time recovery, secrets management.
 5. Cornerstone3D DICOM stack viewing once suitable de-identified DICOM exists.
-6. Load test at the stated pilot concurrency.
+6. ~~Load test at the stated pilot concurrency~~ Done for the application itself (`docs/LOAD_TEST.md`); repeat with real speech and model providers.
 7. Owner verification of the exam profiles against current official pages, which are blocked from this build environment.
 8. Learning-plan item state updates (start, complete, skip) and per-period usage totals.

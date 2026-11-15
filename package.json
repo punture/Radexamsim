@@ -9,6 +9,7 @@
   "scripts": {
     "typecheck": "pnpm -r --parallel run typecheck",
     "test": "vitest run",
+    "test:s3": "bash scripts/test-s3.sh",
     "test:watch": "vitest",
     "db:start": "bash scripts/dev-db.sh start",
     "db:stop": "bash scripts/dev-db.sh stop",

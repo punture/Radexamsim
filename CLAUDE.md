@@ -48,6 +48,7 @@ pnpm test                # vitest (needs PostgreSQL)
 pnpm e2e                 # Playwright vertical slice
 pnpm evals               # evaluation harness; pnpm evals:lock before judging a change
 pnpm check:leaks         # client-bundle leak scan
+pnpm test:s3             # S3 storage driver + API/worker suites against local moto servers
 pnpm --filter @sim/api run openapi
 ```
 
@@ -65,5 +66,5 @@ Before committing a change that touches assessment, examiner policy, prompts or 
 ## Current status (summary)
 
 - **Working end to end with fixtures:** case selection, preflight, spoken exam (WebSocket controller, deterministic examiner, browser speech), image stages, evidence-linked assessment (two-pass pipeline; dev baseline without keys), debrief, learning plan, results after sign-in, appeals, the owner console (import, author, critique, approve, publish, revise, retire, withdraw, resolve disputes), billing ledger, privacy jobs, and the evaluation harness.
-- **Implemented but not live-verified:** Anthropic models, Deepgram ASR, ElevenLabs and Deepgram TTS, Supabase auth, Stripe. No credentials were available.
-- **Missing:** approved clinical cases (owner content), an S3-compatible storage driver, the Cornerstone3D DICOM viewer, a hosting decision and deployment.
+- **Implemented but not live-verified:** Anthropic models, Deepgram ASR, ElevenLabs and Deepgram TTS, Supabase auth, Stripe, and the S3-compatible storage driver (tested against moto). No credentials were available.
+- **Missing:** approved clinical cases (owner content), the Cornerstone3D DICOM viewer, a hosting decision and deployment.

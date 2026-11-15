@@ -73,6 +73,7 @@ Related: [BACKUP_RESTORE.md](BACKUP_RESTORE.md) §7 (erasure and backups) · [IN
 | `metric_samples` | Nothing writes this table | n/a | n/a |
 | Application logs | Request method, URL (with ids; the `/ws` URL carries the single-use ticket), client address, status. No bodies. Authorization, cookie and set-cookie headers redacted. | Set by the log host | Not touched by deletion |
 | Backups and snapshots | Everything above, including data deleted since | The backup window (BACKUP_RESTORE.md) | Deleted data persist until the backups expire |
+| Noncurrent object versions (S3 bucket with versioning) | Deleted or overwritten exports, recordings and images | Until the noncurrent-version lifecycle rule removes them (STORAGE.md §5) | Deleted objects persist as noncurrent versions until then |
 
 ### 2.5 Data held by external processors (when enabled)
 

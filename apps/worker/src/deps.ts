@@ -1,8 +1,7 @@
-import path from "node:path";
 import { AnthropicProvider, DEFAULT_ASSESSMENT_POLICY, type AssessmentPolicy, type CallTelemetry, type LlmProvider, type PromptRole } from "@sim/ai";
 import { createDb, eq, modelCalls, systemConfig, type Db } from "@sim/db";
 import { FIXTURE_MEDIA_DIR } from "@sim/fixtures";
-import { LocalFsStorage, type ObjectStorage } from "@sim/storage";
+import { createStorage, type ObjectStorage } from "@sim/storage";
 import type { WorkerConfig } from "./config";
 
 export type WorkerDeps = {
@@ -34,7 +33,7 @@ export function buildWorkerDeps(config: WorkerConfig, over: Partial<WorkerDeps> 
   return {
     config,
     db,
-    storage: over.storage ?? new LocalFsStorage(path.resolve(config.STORAGE_LOCAL_ROOT), config.ALLOW_FIXTURES ? { derivatives: FIXTURE_MEDIA_DIR } : {}),
+    storage: over.storage ?? createStorage(config, { readOnlyFallbacks: config.ALLOW_FIXTURES ? { derivatives: FIXTURE_MEDIA_DIR } : {} }),
     providerFor: over.providerFor ?? (() => anthropic),
     modelFor: over.modelFor ?? ((role) => model[role] ?? config.MODEL_DEFAULT),
     now: over.now ?? (() => new Date()),

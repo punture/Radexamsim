@@ -9,7 +9,7 @@ Related: [DEPLOYMENT.md](DEPLOYMENT.md) · [ROLLBACK.md](ROLLBACK.md) · [DATA_R
 | Store | Contents | Without a backup | Method |
 |---|---|---|---|
 | PostgreSQL 16 | Everything the application records: accounts, consents, case versions and approvals, sessions, events, transcripts, assessments, appeals, the usage ledger, Stripe events, jobs, audit events, owner review items | Total loss of learner history, billing records and clinical approvals | Continuous archiving with point-in-time recovery, plus periodic full backups (§2) |
-| Object storage volume (`STORAGE_LOCAL_ROOT`) | `derivatives/`: imported, de-identified case images, the only server-side copy. `exports/`: learner exports, short-lived. `recordings/`: empty (nothing writes recordings). `quarantine/`: unused by the server. | Published cases lose their images. Media requests then fail with 502, the "image could not be loaded" error. | Volume snapshots (local-fs today) or object versioning (a future S3-compatible driver), §3 |
+| Object storage volume (`STORAGE_LOCAL_ROOT`) | `derivatives/`: imported, de-identified case images, the only server-side copy. `exports/`: learner exports, short-lived. `recordings/`: empty (nothing writes recordings). `quarantine/`: unused by the server. | Published cases lose their images. Media requests then fail with 502, the "image could not be loaded" error. | Volume snapshots (`local-fs`) or bucket versioning (`s3`), §3 |
 | Secrets | Database credentials, `AUTH_ENCRYPTION_KEY`, provider keys, Stripe webhook secrets | Services cannot start. Local-auth TOTP secrets become unreadable if `AUTH_ENCRYPTION_KEY` is lost. | The secrets manager's own backup and versioning, kept separate from data backups |
 | Code and migrations | The git repository | No reproducible build | **No git remote is configured** (docs/STATUS.md). Owner decision: where the repository is hosted. |
 | Owner's local ingestion workspace | `QDIR` (untouched sources, and a manifest that maps digests to original file paths), derivatives, packages (`tools/ingestion`) | Re-ingestion would be impossible | **Not part of the system's backups.** The ingestion README requires QDIR to stay on the owner's computer: never in a cloud-synced folder, never uploaded. Owner decision: local encrypted backup, or secure deletion once cases are approved. |
@@ -43,14 +43,14 @@ Not needed: the web build (rebuild from the tagged commit), and in-memory live-s
 
 ## 3. Object storage
 
-**Today: local filesystem (`LocalFsStorage`).**
+**Local filesystem (`STORAGE_DRIVER=local-fs`).**
 
 - Snapshot the whole volume on the same schedule as the database backups. Keep snapshots for the same period.
 - Encrypt the volume and its snapshots at rest.
 - Never expose the volume or a snapshot through a web server or a public link.
 - Back up the volume itself, not copies. The application creates files `0600` and directories `0700`, so a restore must keep the owner and permissions.
 
-**A future S3-compatible driver** (not implemented). Expected settings:
+**S3-compatible bucket (`STORAGE_DRIVER=s3`; setup in [STORAGE.md](STORAGE.md) §5).** Bucket settings:
 
 - public access blocked at account and bucket level;
 - default server-side encryption;

@@ -5,6 +5,16 @@ import { enqueue } from "@sim/db";
 
 const config = loadWorkerConfig();
 const deps = buildWorkerDeps(config);
+if (deps.storage.selfCheck) {
+  // Refuse to run on storage that serves objects without credentials, or whose privacy cannot be verified.
+  try {
+    const r = await deps.storage.selfCheck();
+    console.log(`[worker] storage self-check passed: ${JSON.stringify(r)}`);
+  } catch (e) {
+    console.error(`[worker] storage self-check failed; not starting: ${(e as Error).message}`);
+    process.exit(1);
+  }
+}
 const controller = new AbortController();
 console.log(`[worker] ${config.WORKER_ID} started; assessment model: ${deps.providerFor("assessor_a")?.name ?? (config.ALLOW_DEV_BASELINE_ASSESSOR ? "none (DEV BASELINE ASSESSOR — not a clinical assessment)" : "none (assessments will be marked unavailable)")}`);
 // Daily retention sweep (idempotent per day).

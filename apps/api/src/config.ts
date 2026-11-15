@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { StorageEnvSchema, checkStorageEnv } from "@sim/storage";
 
 /**
  * Environment configuration (see .env.example). Secrets are read only on the server and
@@ -22,8 +23,8 @@ export const ConfigSchema = z.object({
   OWNER_MFA_REQUIRED: bool(true),
   SESSION_TTL_HOURS: z.coerce.number().int().default(12),
 
-  STORAGE_DRIVER: z.enum(["local-fs"]).default("local-fs"),
-  STORAGE_LOCAL_ROOT: z.string().default("./var/storage"),
+  /** STORAGE_DRIVER, STORAGE_LOCAL_ROOT and S3_*: shared with the worker (packages/storage). */
+  ...StorageEnvSchema.shape,
 
   LLM_PROVIDER: z.enum(["anthropic", "none"]).default("none"),
   ANTHROPIC_API_KEY: z.string().optional(),
@@ -75,6 +76,7 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
   }
   if (c.AUTH_PROVIDER === "supabase" && !c.SUPABASE_URL) throw new Error("SUPABASE_URL is required for AUTH_PROVIDER=supabase");
   if (c.LLM_PROVIDER === "anthropic" && !c.ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is required for LLM_PROVIDER=anthropic");
+  checkStorageEnv(c, c.NODE_ENV);
   return c;
 }
 

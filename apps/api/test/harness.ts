@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import WebSocket from "ws";
 import type { ServerMessage } from "@sim/contracts";
 import { createDb, type Db } from "@sim/db";
@@ -20,6 +21,27 @@ export type TestEnv = {
   close: () => Promise<void>;
 };
 
+/**
+ * Storage for the service tests: a private local directory, or, under `pnpm test:s3`
+ * (SIM_TEST_STORAGE=s3), the S3 driver against the local moto server, with a fresh key
+ * prefix per test environment.
+ */
+function testStorageEnv(): Record<string, string> {
+  const e = process.env;
+  if (e.SIM_TEST_STORAGE !== "s3") return { STORAGE_LOCAL_ROOT: "./var/test-storage" };
+  if (!e.S3_TEST_ENDPOINT || !e.S3_TEST_BUCKET || !e.S3_TEST_ACCESS_KEY_ID || !e.S3_TEST_SECRET_ACCESS_KEY) throw new Error("SIM_TEST_STORAGE=s3 needs the S3_TEST_* settings from scripts/test-s3.sh");
+  return {
+    STORAGE_DRIVER: "s3",
+    S3_ENDPOINT: e.S3_TEST_ENDPOINT,
+    S3_FORCE_PATH_STYLE: "true",
+    S3_BUCKET: e.S3_TEST_BUCKET,
+    S3_ACCESS_KEY_ID: e.S3_TEST_ACCESS_KEY_ID,
+    S3_SECRET_ACCESS_KEY: e.S3_TEST_SECRET_ACCESS_KEY,
+    S3_SSE: "AES256",
+    S3_PREFIX: `t-${randomUUID().slice(0, 8)}/`,
+  };
+}
+
 export async function startTestEnv(over: { llm?: LlmProvider | null; env?: Record<string, string>; now?: () => number } = {}): Promise<TestEnv> {
   const t = await createTestDatabase();
   const config = loadConfig({
@@ -28,11 +50,12 @@ export async function startTestEnv(over: { llm?: LlmProvider | null; env?: Recor
     ALLOW_DEV_INJECTION: "true",
     ALLOW_FIXTURES: "true",
     OWNER_MFA_REQUIRED: "true",
-    STORAGE_LOCAL_ROOT: "./var/test-storage",
+    ...testStorageEnv(),
     ...over.env,
   });
   const db = createDb(t.url);
   const deps = buildDeps(config, { db, llm: over.llm ?? null, asr: null, tts: null, speech: { asr: "dev_injection_only", tts: "browser" }, ...(over.now ? { now: over.now } : {}) });
+  await deps.storage.selfCheck?.(); // the same startup gate as src/main.ts
   const seeded = await seedDev(db, { ...DEFAULT_SEED, encryptionKey: config.AUTH_ENCRYPTION_KEY });
   const listen = async (s: BuiltServer) => {
     await s.app.listen({ port: 0, host: "127.0.0.1" });

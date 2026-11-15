@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { StorageEnvSchema, checkStorageEnv } from "@sim/storage";
 
 const bool = (d: boolean) => z.enum(["true", "false", "1", "0"]).default(d ? "true" : "false").transform((v) => v === "true" || v === "1");
 
@@ -24,7 +25,8 @@ export const WorkerConfigSchema = z.object({
   ALLOW_DEV_BASELINE_ASSESSOR: bool(false),
   ASSESSMENT_SPEND_CAP_USD: z.coerce.number().default(5),
   USE_LLM_FEEDBACK_SUMMARY: bool(true),
-  STORAGE_LOCAL_ROOT: z.string().default("./var/storage"),
+  /** STORAGE_DRIVER, STORAGE_LOCAL_ROOT and S3_*: shared with the API (packages/storage). */
+  ...StorageEnvSchema.shape,
   ALLOW_FIXTURES: bool(true),
   RECORDING_RETENTION_DAYS: z.coerce.number().int().default(30),
   EXPORT_RETENTION_DAYS: z.coerce.number().int().default(7),
@@ -35,5 +37,6 @@ export function loadWorkerConfig(env: Record<string, string | undefined> = proce
   const c = WorkerConfigSchema.parse(env);
   if (c.NODE_ENV === "production" && c.ALLOW_DEV_BASELINE_ASSESSOR) throw new Error("ALLOW_DEV_BASELINE_ASSESSOR must be false in production");
   if (c.LLM_PROVIDER === "anthropic" && !c.ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is required for LLM_PROVIDER=anthropic");
+  checkStorageEnv(c, c.NODE_ENV);
   return c;
 }

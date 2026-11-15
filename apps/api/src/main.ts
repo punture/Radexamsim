@@ -1,9 +1,11 @@
 import { loadConfig } from "./config";
 import { buildDeps } from "./deps";
 import { buildServer } from "./server";
+import { checkStorage } from "./storage-check";
 
 const config = loadConfig();
 const deps = buildDeps(config);
+await checkStorage(deps.storage);
 const { app, live } = await buildServer(deps);
 const recovered = await live.recoverOrphans();
 if (recovered) app.log.warn({ recovered }, "paused sessions left active by a previous process (platform failure)");

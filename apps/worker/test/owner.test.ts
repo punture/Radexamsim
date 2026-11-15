@@ -66,6 +66,11 @@ describe("case workflow", () => {
     expect(res.status, JSON.stringify(json)).toBe(200);
     expect(json.versionId).toBe("imported-case-1@v1");
     expect(json.issues.some((i: { code: string }) => i.code === "draft_placeholder")).toBe(true);
+    // The stored image streams back byte for byte through the owner preview (from S3 under pnpm test:s3).
+    const preview = await fetch(`${env.base}/api/owner/case-versions/imported-case-1@v1/assets/a1/0`, { headers: { cookie: owner.cookie } });
+    expect(preview.status).toBe(200);
+    expect(preview.headers.get("content-length")).toBe(String(png.length));
+    expect(Buffer.compare(Buffer.from(await preview.arrayBuffer()), png)).toBe(0);
     // Tampered frame bytes are rejected.
     const bad = zipSync({ "pkg/case-import.json": new TextEncoder().encode(JSON.stringify({ ...manifest, caseId: "imported-case-2" })), "pkg/frames/a1/0.png": new Uint8Array([1, 2, 3]) });
     const r2 = await fetch(`${env.base}/api/owner/cases/import`, { method: "POST", headers: { "content-type": "application/zip", cookie: owner.cookie, "x-sim-csrf": "1" }, body: bad });
