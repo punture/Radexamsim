@@ -44,13 +44,13 @@ The product must not be offered to paying clinical users in this state.
 | Browser speech (synthesis, recognition) | Implemented; not tested with a real microphone in automation (E2E uses dev-injected speech) | Manual check pending |
 | Supabase auth (JWT/JWKS, aal2) | **Simulated**: never connected to a project | Local dev auth is tested |
 | Stripe checkout, portal and webhooks against Stripe | **Simulated**: no test-mode keys | Signature verification tested locally |
-| Python ingestion and de-identification | Delivered by a parallel workstream; see `tools/ingestion` | Its own tests |
+| Python ingestion and de-identification (quarantine, inventory, extraction, DICOM PS3.15 basic-profile subset, packaging) | Implemented, tested on synthetic inputs. Its package was verified against the API import schema and digest checks. OCR is untested here (no `tesseract`); there is no face detection; EMF/WMF cannot be converted | `tools/ingestion/tests` (74 pytest tests) |
 | S3-compatible private storage driver | **Not implemented** (local filesystem only) | Backlog |
 | Cornerstone3D DICOM stack viewer | **Not implemented** (still/stack image adapter only; awaits suitable de-identified DICOM) | Backlog |
 | Approved clinical cases | **Blocked on owner content**: 0 approved; 10 content-request slots open | Owner console → Coverage |
 | Deployment | **Blocked on owner decision and authorization** | `docs/runbooks/DEPLOYMENT.md` |
 
-Automated test totals at this commit: **109 vitest tests in 10 files**, **4 Playwright tests**, all passing. Typecheck and the production web build pass.
+Automated test totals at this commit: **109 vitest tests in 10 files**, **4 Playwright tests**, **74 pytest tests** (ingestion), all passing. Typecheck and the production web build pass.
 
 ## Measured results (fixtures, development configuration)
 
