@@ -24,6 +24,15 @@ async function newLiveSession(http: Http, body: Record<string, unknown>, client:
   return sessionId;
 }
 
+/** Polls a condition (database state written by the live controller) until it holds. */
+async function until(check: () => Promise<boolean>, timeoutMs = 5000): Promise<void> {
+  const started = Date.now();
+  while (!(await check())) {
+    if (Date.now() - started > timeoutMs) throw new Error("condition not reached in time");
+    await new Promise((r) => setTimeout(r, 10));
+  }
+}
+
 describe("live examination flow (demo case, deterministic examiner)", () => {
   it("runs a case end to end with controlled reveals, unavailable replies, interruption accounting and finalization", async () => {
     const http = new Http(env.base);
@@ -79,6 +88,11 @@ describe("live examination flow (demo case, deterministic examiner)", () => {
     client.say("Early hypodensity in the left MCA territory, hyperdense left MCA, acute left MCA infarct. That's all.");
     const q = await client.waitFor((m) => m.type === "examiner_utterance", 8000, n);
     expect(q.type === "examiner_utterance" && q.text).toBe("What does the CT angiogram show?");
+    // The client reports the barge-in shortly after the audio starts; let the server record it first.
+    await until(async () => {
+      const [u] = await env.db.select().from(examinerUtterances).where(and(eq(examinerUtterances.sessionId, sessionId), eq(examinerUtterances.text, "What does the CT angiogram show?")));
+      return u?.deliveryStatus === "interrupted";
+    });
 
     // End the station.
     n = client.messages.length;
@@ -229,6 +243,32 @@ describe("live examination flow (demo case, deterministic examiner)", () => {
     expect((await a.req("POST", `/api/sessions/${sa.json.sessionId}/ws-ticket`)).status).toBe(429);
     // ...while learner B, on the same address, still has a full budget.
     expect((await b.req("POST", `/api/sessions/${sb.json.sessionId}/ws-ticket`)).status).toBe(200);
+  });
+
+  it("ends the station mid-utterance: the utterance is recorded as interrupted and nothing follows it", async () => {
+    const http = new Http(env.base);
+    await http.login("learner@example.test", "learner-dev-password-123");
+    const client = new TestClient({ holdPlayback: () => true }); // the examiner's audio never finishes
+    const sessionId = await newLiveSession(http, { profileVersionId: "abr-dr-neuro-oral@2026-11-15.1", mode: "exam", inputMode: "voice" }, client);
+    client.send({ type: "start_station", commandId: client.nextId() });
+    const first = await client.waitFor((m) => m.type === "examiner_utterance");
+    const utteranceId = first.type === "examiner_utterance" ? first.utteranceId : "";
+    const row = async () => (await env.db.select().from(examinerUtterances).where(eq(examinerUtterances.id, utteranceId)))[0];
+    await until(async () => (await row())?.deliveryStatus === "playing");
+
+    const n = client.messages.length;
+    client.send({ type: "request_end_station", commandId: client.nextId() });
+    const cancel = await client.waitFor((m) => m.type === "examiner_cancel", 8000, n);
+    expect(cancel.type === "examiner_cancel" && [cancel.utteranceId, cancel.reason]).toEqual([utteranceId, "station_ended"]);
+    await client.waitFor((m) => m.type === "station_ended", 8000, n);
+    const u = await row();
+    expect(u!.deliveryStatus).toBe("interrupted");
+    expect(u!.playbackEndedAtMs).not.toBeNull();
+    const ev = await env.db.select().from(sessionEvents).where(and(eq(sessionEvents.sessionId, sessionId), eq(sessionEvents.type, "examiner.audio_interrupted")));
+    expect(ev.map((e) => (e.payload as { utteranceId: string; reason: string }).reason)).toEqual(["station_ended"]);
+    // Nothing is said after the end.
+    expect(client.messages.slice(n).filter((m) => m.type === "examiner_utterance")).toHaveLength(0);
+    client.close();
   });
 
   it("treats a failed image render as a technical limitation and keeps the session going", async () => {

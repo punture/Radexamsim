@@ -581,6 +581,15 @@ export class LiveSession {
   async endStation(reason: EndStationReason): Promise<void> {
     if (this.ended) return;
     this.ended = true;
+    if (this.speaking) {
+      // Ended mid-utterance (for example, the candidate ended the station): record what was
+      // played so far as interrupted, so no utterance is left "playing". Nothing follows it.
+      const sp = this.speaking;
+      sp.after = null;
+      this.deferredTrigger = null;
+      this.send({ type: "examiner_cancel", seq: this.nextSeq(), utteranceId: sp.id, reason: "station_ended" });
+      await this.finishUtterance("interrupted", sp.playedChars, "station_ended");
+    }
     if (this.current) {
       const map = { time_expired: "time_expired", candidate_ended: "candidate_requested", technical_invalidation: "technical_failure", all_cases_complete: "station_ended", user_aborted: "candidate_requested" } as const;
       await this.closeCase(map[reason]);

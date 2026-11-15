@@ -121,6 +121,8 @@ export type ClientBehaviour = {
   renderResult?: (handle: string) => "rendered" | "failed";
   /** Return a number of characters to interrupt playback at; null plays fully. */
   interruptAt?: (text: string) => number | null;
+  /** Report only that playback started, as if the audio were still playing. */
+  holdPlayback?: (text: string) => boolean;
 };
 
 /** Scripted browser stand-in: acknowledges viewer commands and reports speech playback. */
@@ -155,8 +157,10 @@ export class TestClient {
     }
     if (m.type === "examiner_utterance") {
       const cut = this.behaviour.interruptAt?.(m.text) ?? null;
+      const hold = this.behaviour.holdPlayback?.(m.text) ?? false;
       setTimeout(() => {
         this.send({ type: "tts_playback", utteranceId: m.utteranceId, event: "started", playedChars: 0, error: null });
+        if (hold) return;
         if (cut !== null) this.send({ type: "tts_playback", utteranceId: m.utteranceId, event: "interrupted", playedChars: cut, error: null });
         else this.send({ type: "tts_playback", utteranceId: m.utteranceId, event: "completed", playedChars: m.text.length, error: null });
       }, 5);
