@@ -317,6 +317,14 @@ with digit runs of 5 or more removed (possible record numbers). Output shows onl
 labels, image counts and finding counts. Packages with high findings stay `quarantine`, and the
 owner console refuses to import them until the findings are resolved.
 
+### Fetching a Box folder into quarantine
+
+`scripts/box_fetch_folder.py --folder-id ID --dest quarantine/<batch>/src` downloads a Box folder
+tree's image, DICOM, PPTX and PDF files into a git-ignored quarantine source directory. It
+keeps the folder layout, checks each file against Box's SHA-1, and prints counts only. It
+authenticates with a Box access token: either one the session's network proxy injects, or
+`BOX_ACCESS_TOKEN`.
+
 ## Supported formats
 
 | input | handling |
