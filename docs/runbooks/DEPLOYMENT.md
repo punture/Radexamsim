@@ -95,6 +95,7 @@ These were found by reading and running the code on 2026-11-15. Each must be res
   5. Rate limits are kept in process memory, so each process enforces them separately.
 
   More than one API process therefore needs engineering work first.
+- **Capacity of one process.** The load test ran one API process and one worker at 25, 50 and 100 concurrent stations, plus 150 stations run 50 at a time. There were no errors or dropped turns. The API's own share of a turn stayed under 25 ms at the 95th percentile, and the process used about 225 MB at 100 stations. Speech and model latency were not part of the test. See [LOAD_TEST.md](../LOAD_TEST.md) for the method, the limits of the result and how to re-run it on the target hardware.
 - **Stop and restart.**
   1. On SIGTERM or SIGINT the API finishes each live session's queued work, stops session timers and closes the process.
   2. On the next start, sessions still `active` are paused as `technical_platform` (the clock stops at the last durable event, so no exam time is lost).
@@ -108,7 +109,7 @@ These were found by reading and running the code on 2026-11-15. Each must be res
   | JSON request body | 2 MB |
   | Owner import (`application/zip`) | 200 MB |
   | One WebSocket message | 1 MB |
-  | Global rate limit | 600 requests per minute per client IP |
+  | Global rate limit | 600 requests per minute per signed-in learner; anonymous requests per client address |
   | Sign-in and registration | 10 per minute |
   | Data export and deletion requests | 3 per hour each |
   | Appeals | 10 per hour |
@@ -118,7 +119,14 @@ These were found by reading and running the code on 2026-11-15. Each must be res
   | Stripe webhook | 600 per minute |
   | Case import | 20 per hour |
 
-- **Trusted proxy.** In production Fastify trusts `X-Forwarded-*` headers (`trustProxy`). The API port must be reachable only from your proxy. Otherwise clients can spoof their IP and get around the rate limits. Also check which client address the API actually sees for requests that arrive through the Next.js rewrite. If every request appears to come from the web server, all learners share one rate-limit bucket.
+  Every limit is counted per signed-in learner once the request is authenticated, so learners behind one hospital address do not throttle each other. Anonymous requests (sign-in, registration, public pages, the Stripe webhook) are counted per client address. MFA verification needs a signed-in session, so its 10-per-minute limit applies per account, whichever addresses the attempts come from. Counters live in process memory and reset on restart.
+- **Trusted proxy (`TRUST_PROXY`).** The client address for anonymous rate limits and logs comes from `X-Forwarded-For`, read through the number of trusted proxy hops.
+  1. In production the default is **one hop**: the reverse proxy in front of both the web server and the API. The Next.js `/api` rewrite passes `X-Forwarded-For` through unchanged and adds no entry (checked in the Next.js 16.4 source: rewrites are proxied without `xfwd`), so the browser → proxy → web → API path and the browser → proxy → API `/ws` path both count as one hop.
+  2. With a load balancer in front of the reverse proxy, set `TRUST_PROXY=2`. Alternatively, list the trusted addresses, including the web server's, because it is the API's peer for `/api` requests (`TRUST_PROXY=127.0.0.1,10.0.0.0/8`).
+  3. Do not use `TRUST_PROXY=true`. It trusts every hop and takes the left-most entry, which a client can forge.
+  4. The API port must be reachable only from the reverse proxy and the web server. With a hop count, whoever connects directly is treated as a trusted proxy.
+
+  After deploying, check the address the API logs for a sign-in request (`remoteAddress` is the socket peer; the rate limit uses the derived client address). If every request appears to come from the web server or the proxy, all anonymous requests share one counter. Tests: `apps/api/test/proxy.test.ts`.
 - **Logs.** Pino JSON on stdout, at level `info` in production. The `authorization`, `cookie` and `set-cookie` headers are redacted, and request bodies are not logged. Request URLs are logged: they contain record ids, and the `/ws` URL contains the single-use ticket.
 
 ### 3.3 Worker
@@ -374,7 +382,7 @@ Permissions-Policy: microphone=(self), camera=(), geolocation=()
 
 **Reverse proxy**
 
-- Forward `X-Forwarded-For` and `X-Forwarded-Proto`. Do not let clients reach the API port directly.
+- Forward `X-Forwarded-For` (set it to the client address, or append to it) and `X-Forwarded-Proto`. Set `TRUST_PROXY` to match the proxy chain (§3.2). Do not let clients reach the API port directly.
 - For `/ws`: allow the WebSocket upgrade, and set the idle timeout to at least 120 s. During an active station the server sends a clock message about every 5 s. The browser does not send keep-alive pings, so a socket that is idle before the station starts may be closed and then reopened.
 - Allow request bodies of 200 MB on `/api/owner/cases/import` only. Keep the default elsewhere: the API itself limits JSON to 2 MB.
 - Do not cache `/api/*`.

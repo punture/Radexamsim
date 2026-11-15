@@ -11,7 +11,8 @@
     "seed": "tsx src/seed.ts",
     "openapi": "tsx src/openapi-cli.ts",
     "totp": "tsx src/totp-cli.ts",
-    "import-cases": "tsx src/import-cli.ts"
+    "import-cases": "tsx src/import-cli.ts",
+    "load": "tsx load/live-load.ts"
   },
   "dependencies": {
     "@fastify/cookie": "^11.1.5",

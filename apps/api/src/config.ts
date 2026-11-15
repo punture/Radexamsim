@@ -53,6 +53,8 @@ export const ConfigSchema = z.object({
   STRIPE_PRICE_MONTHLY: z.string().optional(),
   STRIPE_PRICE_ANNUAL: z.string().optional(),
   BILLING_ENFORCED: bool(true),
+  /** Proxy trust for client IPs: "true" | "false" | hop count | comma-separated addresses/CIDRs. */
+  TRUST_PROXY: z.string().optional(),
   /** Days a completed data export stays downloadable; must match the worker's setting. */
   EXPORT_RETENTION_DAYS: z.coerce.number().int().min(1).max(90).default(7),
 });

@@ -157,11 +157,14 @@ does not grant.
 
 ### Rate limits
 
-`@fastify/rate-limit` keys requests by client IP. In production `trustProxy` is on, so the IP
-comes from `X-Forwarded-For`.
+`@fastify/rate-limit` runs after authentication. A signed-in request is counted per user
+(`user:<id>`), so learners behind one network address do not throttle each other. An anonymous
+request is counted per client address (`ip:<address>`). In production the address comes from
+`X-Forwarded-For`, read through `TRUST_PROXY` trusted hops (default 1; see
+[DEPLOYMENT.md §3.2](runbooks/DEPLOYMENT.md)).
 
-- Routes without their own limit share one counter: 600 requests per minute per IP. This
-  includes the WebSocket upgrade on `/ws`.
+- Routes without their own limit share one counter: 600 requests per minute per user or
+  address. This includes the WebSocket upgrade on `/ws`.
 - A route with its own limit has a separate counter:
 
 | Route | Limit |

@@ -11,14 +11,20 @@ console.log(`[worker] ${config.WORKER_ID} started; assessment model: ${deps.prov
 const day = new Date().toISOString().slice(0, 10);
 await enqueue(deps.db, { kind: "retention_sweep", payload: {}, dedupeKey: `retention:${day}` });
 // Optional liveness endpoint for orchestrators (and the E2E harness).
+let health: import("node:http").Server | null = null;
 if (process.env.WORKER_HEALTH_PORT) {
   const { createServer } = await import("node:http");
-  createServer((req, res) => {
+  health = createServer((req, res) => {
     res.writeHead(req.url === "/health" ? 200 : 404, { "content-type": "application/json" });
     res.end(JSON.stringify({ ok: req.url === "/health", worker: config.WORKER_ID }));
   }).listen(Number(process.env.WORKER_HEALTH_PORT), "127.0.0.1");
 }
-const stop = () => controller.abort();
+// On SIGTERM/SIGINT: stop claiming jobs, finish the current one, close the health endpoint
+// (otherwise the open server keeps the process alive after the runner stops).
+const stop = () => {
+  controller.abort();
+  health?.close();
+};
 process.on("SIGINT", stop);
 process.on("SIGTERM", stop);
 await runForever(deps, controller.signal);

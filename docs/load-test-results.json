@@ -1,0 +1,119 @@
+{
+  "generatedAt": "2026-11-15T22:30:44.164Z",
+  "machine": {
+    "cpus": 4,
+    "model": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+    "memoryGb": 16.9,
+    "node": "v22.23.4"
+  },
+  "config": {
+    "turnsPerStation": 4,
+    "stationsPerLearner": 1,
+    "thinkMs": 1500,
+    "examiner": "deterministic policy",
+    "speech": "dev-injected transcripts; no TTS/ASR provider",
+    "assessor": "development baseline (worker)",
+    "apiInstances": 1
+  },
+  "results": [
+    {
+      "concurrentStations": 25,
+      "stationsPerLearner": 1,
+      "stationsCompleted": 25,
+      "stationsEndedByExaminer": 0,
+      "errors": 0,
+      "errorKinds": [],
+      "turnTimeouts": 0,
+      "turns": 100,
+      "firstUtteranceMs": {
+        "p50": 21,
+        "p95": 35.2,
+        "max": 38.1
+      },
+      "turnLatencyMs": {
+        "p50": 12.1,
+        "p95": 24.6,
+        "max": 53.7
+      },
+      "serverDecisionMs": {
+        "p50": 1,
+        "p95": 2,
+        "n": 100
+      },
+      "apiCpuPercent": {
+        "mean": 19.4,
+        "max": 53.9
+      },
+      "apiRssMbMax": 162.9,
+      "wallSeconds": 11.5,
+      "assessmentDrainSeconds": 4.5,
+      "jobsLeftAfterDrain": 0
+    },
+    {
+      "concurrentStations": 50,
+      "stationsPerLearner": 1,
+      "stationsCompleted": 50,
+      "stationsEndedByExaminer": 0,
+      "errors": 0,
+      "errorKinds": [],
+      "turnTimeouts": 0,
+      "turns": 200,
+      "firstUtteranceMs": {
+        "p50": 16.1,
+        "p95": 26.3,
+        "max": 29.7
+      },
+      "turnLatencyMs": {
+        "p50": 10.3,
+        "p95": 17.8,
+        "max": 35.7
+      },
+      "serverDecisionMs": {
+        "p50": 1,
+        "p95": 1,
+        "n": 200
+      },
+      "apiCpuPercent": {
+        "mean": 23.2,
+        "max": 40.1
+      },
+      "apiRssMbMax": 182.8,
+      "wallSeconds": 11.7,
+      "assessmentDrainSeconds": 4.5,
+      "jobsLeftAfterDrain": 0
+    },
+    {
+      "concurrentStations": 100,
+      "stationsPerLearner": 1,
+      "stationsCompleted": 100,
+      "stationsEndedByExaminer": 0,
+      "errors": 0,
+      "errorKinds": [],
+      "turnTimeouts": 0,
+      "turns": 400,
+      "firstUtteranceMs": {
+        "p50": 21,
+        "p95": 53.8,
+        "max": 104.3
+      },
+      "turnLatencyMs": {
+        "p50": 11.8,
+        "p95": 23.6,
+        "max": 71.8
+      },
+      "serverDecisionMs": {
+        "p50": 1,
+        "p95": 2,
+        "n": 400
+      },
+      "apiCpuPercent": {
+        "mean": 41.9,
+        "max": 84
+      },
+      "apiRssMbMax": 224.8,
+      "wallSeconds": 12,
+      "assessmentDrainSeconds": 5,
+      "jobsLeftAfterDrain": 0
+    }
+  ]
+}

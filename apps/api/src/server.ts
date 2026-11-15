@@ -27,11 +27,20 @@ export async function buildServer(deps: Deps): Promise<BuiltServer> {
             redact: ["req.headers.authorization", "req.headers.cookie", 'res.headers["set-cookie"]'],
           },
     bodyLimit: 2 * 1024 * 1024,
-    trustProxy: deps.config.NODE_ENV === "production",
+    trustProxy: trustProxySetting(deps.config.TRUST_PROXY, deps.config.NODE_ENV),
   });
 
   await app.register(cookie);
-  await app.register(rateLimit, { global: true, max: 600, timeWindow: "1 minute" });
+  // Limits run after authentication, so signed-in requests are counted per learner, not
+  // per IP: many residents share one hospital network address. Anonymous requests (sign-in,
+  // registration, public pages) are counted per client IP.
+  await app.register(rateLimit, {
+    global: true,
+    max: 600,
+    timeWindow: "1 minute",
+    hook: "preHandler",
+    keyGenerator: (req) => (req.auth?.userId ? `user:${req.auth.userId}` : `ip:${req.ip}`),
+  });
   await app.register(websocket, { options: { maxPayload: 1024 * 1024 } });
   registerAuth(app, deps.db, deps.config);
 
@@ -73,4 +82,21 @@ export async function buildServer(deps: Deps): Promise<BuiltServer> {
   ownerRoutes(app, deps);
   wsRoute(app, deps, live, tickets);
   return { app, live, tickets };
+}
+
+/**
+ * Which proxies may set the client address (X-Forwarded-For) used for rate limits and logs.
+ * TRUST_PROXY: "false", "true" (trust every hop; spoofable), a hop count ("1"), or
+ * comma-separated proxy addresses or CIDRs ("127.0.0.1,10.0.0.0/8").
+ * Default: one hop in production (one reverse proxy in front; the Next.js rewrite passes the
+ * header through unchanged, so it adds no hop), nothing elsewhere.
+ */
+export function trustProxySetting(raw: string | undefined, nodeEnv: string): boolean | string[] | ((address: string, hop: number) => boolean) {
+  const value = raw?.trim() || (nodeEnv === "production" ? "1" : "false");
+  if (value === "true" || value === "false") return value === "true";
+  if (/^\d+$/.test(value)) {
+    const hops = Number(value);
+    return (_address: string, hop: number) => hop < hops; // trust only the nearest `hops` proxies
+  }
+  return value.split(",").map((x) => x.trim()).filter(Boolean);
 }

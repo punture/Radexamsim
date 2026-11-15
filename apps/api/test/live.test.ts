@@ -212,6 +212,25 @@ describe("live examination flow (demo case, deterministic examiner)", () => {
     }
   }, 45_000);
 
+  it("counts rate limits per signed-in learner, so learners sharing one network address do not throttle each other", async () => {
+    // Two fresh learners (budgets of the seeded learner are shared with other tests).
+    const a = new Http(env.base);
+    expect((await a.req("POST", "/api/auth/register", { email: "same-network-a@example.test", password: "same-network-password-123", acceptTerms: true })).status).toBe(200);
+    const b = new Http(env.base);
+    expect((await b.req("POST", "/api/auth/register", { email: "same-network-b@example.test", password: "same-network-password-123", acceptTerms: true })).status).toBe(200);
+    const sa = await a.req("POST", "/api/sessions", { profileVersionId: "abr-dr-neuro-oral@2026-11-15.1", mode: "practice", demo: true, inputMode: "voice" });
+    const sb = await b.req("POST", "/api/sessions", { profileVersionId: "abr-dr-neuro-oral@2026-11-15.1", mode: "practice", demo: true, inputMode: "voice" });
+    expect(sa.status, JSON.stringify(sa.json)).toBe(200);
+    expect(sb.status, JSON.stringify(sb.json)).toBe(200);
+    await a.req("POST", `/api/sessions/${sa.json.sessionId}/preflight`, PREFLIGHT_OK);
+    await b.req("POST", `/api/sessions/${sb.json.sessionId}/preflight`, PREFLIGHT_OK);
+    // Both clients come from 127.0.0.1. Learner A exhausts the ticket limit (30/min)...
+    for (let i = 0; i < 30; i++) expect((await a.req("POST", `/api/sessions/${sa.json.sessionId}/ws-ticket`)).status).toBe(200);
+    expect((await a.req("POST", `/api/sessions/${sa.json.sessionId}/ws-ticket`)).status).toBe(429);
+    // ...while learner B, on the same address, still has a full budget.
+    expect((await b.req("POST", `/api/sessions/${sb.json.sessionId}/ws-ticket`)).status).toBe(200);
+  });
+
   it("treats a failed image render as a technical limitation and keeps the session going", async () => {
     const http = new Http(env.base);
     await http.login("learner@example.test", "learner-dev-password-123");
