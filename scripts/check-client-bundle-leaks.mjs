@@ -19,12 +19,6 @@ const distDir = path.join(web, dist);
 if (!argDist) {
   console.log(`Building the web client into ${dist} …`);
   execSync("npx next build", { cwd: web, stdio: "inherit", env: { ...process.env, NEXT_DIST_DIR: dist, NEXT_TELEMETRY_DISABLED: "1" } });
-  // next build rewrites next-env.d.ts to point at the dist dir; restore the committed file.
-  try {
-    execSync("git checkout -- apps/web/next-env.d.ts", { cwd: root, stdio: "ignore" });
-  } catch {
-    /* not a git checkout */
-  }
 }
 if (!existsSync(distDir)) {
   console.error(`No build at ${distDir}`);

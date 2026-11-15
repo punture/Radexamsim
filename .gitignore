@@ -26,3 +26,4 @@ evals/reports/*.json
 tools/ingestion/*.egg-info/
 tools/ingestion/**/__pycache__/
 tools/ingestion/.pytest_cache/
+apps/web/next-env.d.ts
