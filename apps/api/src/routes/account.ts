@@ -71,6 +71,8 @@ export function accountRoutes(app: FastifyInstance, deps: Deps): void {
         createdAt: r.createdAt.toISOString(),
         completedAt: r.completedAt?.toISOString() ?? null,
         downloadable: r.kind === "export" && r.status === "complete" && !!r.resultStorageKey,
+        // Exports are deleted by the worker after EXPORT_RETENTION_DAYS.
+        expiresAt: r.kind === "export" && r.completedAt ? new Date(r.completedAt.getTime() + deps.config.EXPORT_RETENTION_DAYS * 86400_000).toISOString() : null,
       })),
   });
 

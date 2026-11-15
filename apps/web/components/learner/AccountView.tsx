@@ -9,7 +9,7 @@ import { errorText, formatDate, formatDateTime } from "./learnerFormat";
 type ConsentKind = "microphone_processing" | "audio_retention" | "evaluation_use" | "browser_speech_vendor";
 type ConsentRecord = { kind: string; granted: boolean; policyVersion: string; at: string };
 type ConsentsResponse = { policyVersion: string; consents: ConsentRecord[] };
-type DataRequest = { id: string; kind: "export" | "deletion"; status: string; createdAt: string; completedAt: string | null; downloadable: boolean };
+type DataRequest = { id: string; kind: "export" | "deletion"; status: string; createdAt: string; completedAt: string | null; downloadable: boolean; expiresAt?: string | null };
 
 const CONSENTS: { kind: ConsentKind; title: string; description: string }[] = [
   {
@@ -265,9 +265,12 @@ export function AccountView() {
                     <td data-label="Completed">{r.completedAt ? formatDate(r.completedAt) : "—"}</td>
                     <td>
                       {r.downloadable ? (
-                        <a href={`/api/account/exports/${encodeURIComponent(r.id)}/download`} download>
-                          Download<span className="visually-hidden"> export requested {formatDateTime(r.createdAt)}</span>
-                        </a>
+                        <>
+                          <a href={`/api/account/exports/${encodeURIComponent(r.id)}/download`} download>
+                            Download<span className="visually-hidden"> export requested {formatDateTime(r.createdAt)}</span>
+                          </a>
+                          {r.expiresAt && <span className="muted text-sm"> · available until {formatDate(r.expiresAt)}, then deleted</span>}
+                        </>
                       ) : null}
                     </td>
                   </tr>
