@@ -12,5 +12,6 @@ export default defineConfig({
     testTimeout: 30_000,
     hookTimeout: 60_000,
     pool: "forks",
+    globalSetup: ["./vitest.global-setup.ts"],
   },
 });
