@@ -3,7 +3,22 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "exports": { ".": "./src/index.ts" },
-  "scripts": { "typecheck": "tsc -p tsconfig.json --noEmit" },
-  "dependencies": { "@sim/contracts": "workspace:*", "zod": "catalog:" }
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.8.0",
+    "@sim/contracts": "workspace:*",
+    "ws": "^8.23.0",
+    "zod": "catalog:",
+    "@sim/exam-engine": "workspace:*",
+    "@sim/clinical-content": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.18.2",
+    "@sim/fixtures": "workspace:*"
+  }
 }
