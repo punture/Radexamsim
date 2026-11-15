@@ -125,6 +125,8 @@ type Current = {
   timeCheckDone: boolean;
   hintsGiven: Set<string>;
   candidateSpoke: boolean;
+  /** Provider confidence of the most recent candidate segment in this case. */
+  lastCandidateConfidence?: number | null;
 };
 
 const ACK_TIMEOUT_MS = 12_000;
@@ -786,6 +788,7 @@ export class LiveSession {
     });
     cur.conversation.push({ speaker: "candidate", text: s.text, atMs: endMs - cur.startedAtMs });
     cur.candidateSpoke = true;
+    cur.lastCandidateConfidence = s.confidence;
     this.send({ type: "transcript_echo", seq: this.nextSeq(), segmentId: seg!.id, text: s.text, interim: false });
     this.scheduleTurnEnd();
   }
@@ -1147,6 +1150,7 @@ export class LiveSession {
       secondsSinceCandidateSpoke: lastCandidate ? Math.round((this.caseMs() - lastCandidate.atMs) / 1000) : null,
       hasCandidateSpokenInCase: cur.candidateSpoke,
       explicitEndTurn: this.explicitEndTurn,
+      lastCandidateConfidence: cur.lastCandidateConfidence ?? null,
     } as const;
     const menu = buildExaminerMenu(input);
     const started = performance.now();

@@ -64,7 +64,13 @@ export type MenuInput = {
   hasCandidateSpokenInCase: boolean;
   /** Set when the candidate pressed "end turn" / push-to-talk release. */
   explicitEndTurn: boolean;
+  /** Provider confidence of the last candidate segment in this case (null when unknown). */
+  lastCandidateConfidence?: number | null;
 };
+
+/** Recognition confidence below which recognized words cannot be relied on (shared with assessment). */
+export const LOW_RECOGNITION_CONFIDENCE = 0.6;
+const poorlyRecognized = (input: MenuInput) => typeof input.lastCandidateConfidence === "number" && input.lastCandidateConfidence < LOW_RECOGNITION_CONFIDENCE;
 
 export type ExaminerMenu = {
   entries: Map<string, MenuEntry>;
@@ -175,6 +181,7 @@ export function buildExaminerMenu(input: MenuInput): ExaminerMenu {
       atSeconds: Math.floor(t.atMs / 1000),
     })),
     secondsSinceCandidateSpoke: input.secondsSinceCandidateSpoke,
+    lastCandidateTurnPoorlyRecognized: poorlyRecognized(input),
   };
 
   return { entries, canAdvanceCase, skippableRemaining, mandatoryRemaining, timeLimited, context };
@@ -300,6 +307,13 @@ export function fallbackDecision(menu: ExaminerMenu, input: MenuInput): Fallback
   if (lastCandidate && input.trigger === "candidate_turn_ended") {
     const ref = matchFactReply(input.cv, menu, lastCandidate.text);
     if (ref) return { proposal: { action: "deliver_fact_reply", ref, reason: "candidate_requested_information", note: "matched approved trigger" }, note: "fact reply" };
+  }
+
+  // 1b) Poorly recognized speech: ask once for a repeat instead of guessing what was said.
+  if (lastCandidate && input.trigger === "candidate_turn_ended" && poorlyRecognized(input)) {
+    const alreadyAsked = lastExaminer && /repeat that|clarify/i.test(lastExaminer.text);
+    const ref = [...menu.entries].find(([, e]) => e.kind === "neutral" && e.phraseId === "n_clarify_repeat")?.[0];
+    if (ref && !alreadyAsked) return { proposal: { action: "say_neutral", ref, reason: "clarification_needed", note: "low-confidence speech recognition" }, note: "clarify" };
   }
 
   // 2) Time management.

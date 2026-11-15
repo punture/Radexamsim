@@ -56,7 +56,7 @@ export const ABR_NEURO_PROFILE: ExamProfileVersion = ExamProfileVersion.parse({
       "Settings derived from search-engine snippets of official theabr.org pages; live pages were not fetchable from the build environment. Owner confirmation required before any marketing claim relies on them.",
     unresolvedConflicts: [
       "Session duration: '25-minute' (certification page) vs '20- to 25-minute' (BEAM June 2026). Configured 25 minutes.",
-      "Cases per category session are not published for DR; 'three to 10 cases' is stated for ABR oral exams generally. Default 5, configurable 3–10.",
+      "Cases per category session are not published for DR; 'three to 10 cases' is stated for ABR oral exams generally. The build's default is 3 cases per station (configurable 3–10 per session).",
       "Outlier score-raising and conditional-pass wording may describe historical formats; not simulated.",
     ],
   },

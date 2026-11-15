@@ -11,7 +11,8 @@ const API_PORT = 4100;
 const WEB_PORT = 3100;
 const DB = process.env.E2E_DATABASE_URL ?? "postgres://sim:sim_dev_password@127.0.0.1:5432/sim_e2e";
 const defaultChrome = chromium.executablePath();
-const executablePath = existsSync(defaultChrome) ? undefined : "/opt/pw-browsers/chromium";
+// PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH overrides; otherwise Playwright's own browser, else the preinstalled one.
+const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ?? (existsSync(defaultChrome) ? undefined : "/opt/pw-browsers/chromium");
 
 export default defineConfig({
   testDir: "./e2e",

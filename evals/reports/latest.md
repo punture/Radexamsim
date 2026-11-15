@@ -1,18 +1,18 @@
-# Evaluation report 20261115031651-baseline
+# Evaluation report 20261115033338-baseline
 
-Generated 2026-11-15T03:16:51.190Z · code 83562ce+uncommitted · profile abr-dr-neuro-oral@2026-11-15.1
+Generated 2026-11-15T03:33:38.404Z · code 33ce33d+uncommitted · profile abr-dr-neuro-oral@2026-11-15.1
 
 - **Assessor under test:** development baseline (deterministic lexical matcher; NOT a clinical assessor; refused in production)
 - **Examiner policy under test:** deterministic approved-question policy (used when no examiner model is configured)
 - **Cases:** fx-ring-lesion@v1, fx-spine-cord-compression@v1, fx-stroke-lmca@v1 (fictional development fixtures with placeholder images)
-- **Prompt versions:** case_author case_author@2026-11-15.1, clinical_critic clinical_critic@2026-11-15.1, rubric_critic rubric_critic@2026-11-15.1, live_examiner live_examiner@2026-11-15.1, evidence_extractor evidence_extractor@2026-11-15.1, assessor_a assessor@2026-11-15.1, assessor_b assessor@2026-11-15.1, adjudicator adjudicator@2026-11-15.1, feedback_writer feedback_writer@2026-11-15.1, learning_plan learning_plan@2026-11-15.1
+- **Prompt versions:** case_author case_author@2026-11-15.1, clinical_critic clinical_critic@2026-11-15.1, rubric_critic rubric_critic@2026-11-15.1, live_examiner live_examiner@2026-11-15.2, evidence_extractor evidence_extractor@2026-11-15.1, assessor_a assessor@2026-11-15.1, assessor_b assessor@2026-11-15.1, adjudicator adjudicator@2026-11-15.1, feedback_writer feedback_writer@2026-11-15.1, learning_plan learning_plan@2026-11-15.1
 
 ## Read this first
 
 - The human reference is the owner's approved case truth, rubric anchors and selected ratings. Status of the response-pattern reference: pending owner approval 25; owner blind ratings imported for 0 pattern(s). **Until the owner approves the intended judgments, "agreement with reference" below means agreement with developer-authored labels, not with the owner.**
 - These are development fixtures (25 base responses across 3 fictional cases). They are not evidence of validity with real learners, and many responses per case are not independent.
 - Model agreement with a single human reference, or between models, is a consistency signal. It is not proof of clinical correctness, board endorsement or external validation.
-- Final split locked 2026-11-15T03:16:43.812Z; inputs unchanged. It has been evaluated 0 time(s) before this run under this lock.
+- Final split locked 2026-11-15T03:16:43.812Z; inputs unchanged. It has been evaluated 1 time(s) before this run under this lock.
 
 ## Release gates (initial pilot)
 
@@ -140,14 +140,14 @@ Not measured. Measuring learning requires consented longitudinal learner data, w
 
 ## 5. Examiner behaviour (simulated sessions driven by each pattern's candidate speech)
 
-- Decisions: 110 across 25 sessions (4.4 per case); model proposals accepted 0, rejected 0, deterministic fallbacks 110.
+- Decisions: 112 across 25 sessions (4.5 per case); model proposals accepted 0, rejected 0, deterministic fallbacks 112.
 - Neutrality (no evaluative words in exam mode): ✅ 0 violations
 - Only approved text spoken: ✅ all outputs are approved questions, replies, announcements or neutral phrases
 - Information leakage (accepted answer concepts spoken before the candidate said them, excluding questions that declare they supply content): ✅ 0
-- Forged actions (unknown alias, raw stage id, wrong alias type, unknown asset) rejected: 440/440 (100%)
+- Forged actions (unknown alias, raw stage id, wrong alias type, unknown asset) rejected: 448/448 (100%)
 - Requests for unavailable/other information answered with the approved reply: 4/4 (100%)
 - Examiner spoke after a mid-thought pause: 0
-- Policy decision latency (in-process; excludes network, endpointing, speech synthesis): p50 0.04 ms, p95 0.37 ms.
+- Policy decision latency (in-process; excludes network, endpointing, speech synthesis): p50 0.05 ms, p95 0.47 ms.
 
 ## 6. Regression scenarios (spec §18)
 
@@ -164,7 +164,7 @@ all mapped test files passed. 16/16 scenarios passing.
 | Learner requests an unavailable sequence | Approved unavailable-information reply; no invented image/result | ✅ pass | full | ✓ answers a request for an unavailable sequence with the approved reply (no invented image) (engine.test.ts)<br>✓ runs a case end to end with controlled reveals, unavailable replies, interruption accounting and finalization (live.test.ts) |
 | Request contains an unauthorized stage or asset ID | Server rejects it regardless of model output | ✅ pass | full | ✓ only accepts refs that were offered, with the right type (engine.test.ts)<br>✓ rejects an unauthorized reference from the model and falls back to an approved action (live.test.ts) |
 | TTS is interrupted midway | Only played content counts as delivered assistance | ✅ pass | full | ✓ does not count an interrupted question as delivered (engine.test.ts)<br>✓ uses provider alignment when available and rounds estimates down to whole words (assessment.test.ts)<br>✓ runs a case end to end with controlled reveals, unavailable replies, interruption accounting and finalization (live.test.ts) |
-| ASR result remains uncertain | Clarification or explicit uncertainty; no confident fabricated mark | ✅ pass | partial — Assessment side is deterministic. Live clarification phrases are available to the model examiner only; the deterministic fallback examiner does not ask for clarification. | ✓ never turns low-confidence transcription into a confident mark (ASR uncertainty) (assessment.test.ts) |
+| ASR result remains uncertain | Clarification or explicit uncertainty; no confident fabricated mark | ✅ pass | full | ✓ never turns low-confidence transcription into a confident mark (ASR uncertainty) (assessment.test.ts)<br>✓ asks the candidate to repeat after poorly recognized speech, once, instead of acting on it (engine.test.ts) |
 | Model returns unsupported evidence or malformed JSON | Bounded retry, rejection, or explicit unavailable assessment | ✅ pass | full | ✓ uses bounded retries for malformed output and returns an explicit unavailable result (no fake result) (assessment.test.ts)<br>✓ downgrades unsupported positive claims and fabricated evidence (assessment.test.ts)<br>✓ rejects fabricated quotes and unknown segments (assessment.test.ts) |
 | Network reconnect, duplicate job, or webhook retry | No duplicate clinical action, result, or usage charge | ✅ pass | full | ✓ resumes after a network reconnect without repeating speech, resetting the clock or duplicating actions (live.test.ts)<br>✓ deduplicates enqueues and claims each job once (db.test.ts)<br>✓ provisions from subscription events (not the success redirect), deduplicates, and ignores stale events (billing.test.ts)<br>✓ reserves transactionally, reconciles exactly once, and never double-charges (billing.test.ts)<br>✓ starting twice is idempotent (refresh cannot reset the timer) (engine.test.ts) |
 | Learner opens another user's attempt/media URL | Access denied | ✅ pass | full | ✓ runs a case end to end with controlled reveals, unavailable replies, interruption accounting and finalization (live.test.ts) |
@@ -177,8 +177,8 @@ all mapped test files passed. 16/16 scenarios passing.
 - Assessment pipeline latency per case attempt (development baseline (deterministic lexical matcher; NOT a clinical assessor; refused in production)): p50 1 ms, p95 2 ms.
 - Measured model spend in this run: $0.0000 (no external model calls).
 - **Projected** model cost with claude-opus-5-5 at configured prices ($4/M input, $20/M output), from the real rendered prompts of these attempts (input tokens ≈ characters/3.8) and assumed output sizes (extractor 2500, each assessor 3500, adjudicator 1500 on ~30% of attempts, examiner 120 per decision):
-  - Mean prompt sizes: extractor 702 tokens, assessor 4532 tokens, examiner 1469 tokens/decision.
-  - Assessment ≈ $0.246 per case; LLM examiner ≈ $0.036 per case.
+  - Mean prompt sizes: extractor 702 tokens, assessor 4532 tokens, examiner 1533 tokens/decision.
+  - Assessment ≈ $0.246 per case; LLM examiner ≈ $0.038 per case.
   - Per completed station (3 cases): ≈ $0.85 excluding speech recognition/synthesis, storage and hosting. Projections, not invoices: reconcile against provider billing once live.
 
 ## Appendix: per-response results (base variant)

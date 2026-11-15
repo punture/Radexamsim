@@ -270,7 +270,7 @@ describe("runner controls", () => {
   void ctx;
   it("honours kill switches and spend caps", async () => {
     const provider = new ScriptedLlmProvider({ live_examiner: () => ({ kind: "data", data: { action: "wait", ref: null, reason: "candidate_still_thinking", note: "" } }) });
-    const input = { mode: "exam" as const, trigger: "candidate_turn_ended" as const, timing: { stationElapsedSeconds: 1, stationRemainingSeconds: 1, caseElapsedSeconds: 1, caseTimeGuidanceSeconds: null, isLastCase: true }, stage: { ordinal: 1, candidateHistory: "", examinerNotes: "", visibleImages: [] }, questions: [], factReplies: [], neutralPhrases: [], revealOptions: [], viewportOptions: [], canAdvanceCase: false, conversation: [], secondsSinceCandidateSpoke: null };
+    const input = { mode: "exam" as const, trigger: "candidate_turn_ended" as const, timing: { stationElapsedSeconds: 1, stationRemainingSeconds: 1, caseElapsedSeconds: 1, caseTimeGuidanceSeconds: null, isLastCase: true }, stage: { ordinal: 1, candidateHistory: "", examinerNotes: "", visibleImages: [] }, questions: [], factReplies: [], neutralPhrases: [], revealOptions: [], viewportOptions: [], canAdvanceCase: false, conversation: [], secondsSinceCandidateSpoke: null, lastCandidateTurnPoorlyRecognized: false };
     expect(await runPrompt(examinerPrompt, input, { routing: { provider, model: "m" }, disabled: true })).toMatchObject({ ok: false, reason: "disabled" });
     const spend = new SpendTracker(0);
     expect(await runPrompt(examinerPrompt, input, { routing: { provider, model: "m" }, spend })).toMatchObject({ ok: false, reason: "budget_exceeded" });

@@ -128,10 +128,12 @@ export const SCENARIOS: Scenario[] = [
     id: "asr_uncertain",
     scenario: "ASR result remains uncertain",
     required: "Clarification or explicit uncertainty; no confident fabricated mark",
-    tests: [{ file: ai, title: "never turns low-confidence transcription into a confident mark (ASR uncertainty)" }],
+    tests: [
+      { file: ai, title: "never turns low-confidence transcription into a confident mark (ASR uncertainty)" },
+      { file: engine, title: "asks the candidate to repeat after poorly recognized speech, once, instead of acting on it" },
+    ],
     evalTags: ["asr_uncertain"],
-    coverage: "partial",
-    gap: "Assessment side is deterministic. Live clarification phrases are available to the model examiner only; the deterministic fallback examiner does not ask for clarification.",
+    coverage: "full",
   },
   {
     id: "malformed_output",

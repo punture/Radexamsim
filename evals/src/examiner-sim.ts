@@ -104,6 +104,7 @@ export async function simulateExaminer(p: ResponsePattern, cv: CaseVersion, prof
   let t = 0;
   const conversation: ConversationTurn[] = [];
   let candidateText = "";
+  let lastConfidence: number | null = null;
   let ended = false;
 
   const renderStage = (stageId: string) => {
@@ -189,6 +190,7 @@ export async function simulateExaminer(p: ResponsePattern, cv: CaseVersion, prof
       secondsSinceCandidateSpoke: lastCandidate ? Math.round((t - lastCandidate.atMs) / 1000) : null,
       hasCandidateSpokenInCase: !!lastCandidate,
       explicitEndTurn,
+      lastCandidateConfidence: lastConfidence,
     };
     const menu = buildExaminerMenu(input);
     res.decisions++;
@@ -230,6 +232,7 @@ export async function simulateExaminer(p: ResponsePattern, cv: CaseVersion, prof
     if (ended || x.kind !== "candidate") break;
     conversation.push({ speaker: "candidate", text: x.text, atMs: t });
     candidateText += ` ${x.text}`;
+    lastConfidence = x.confidence ?? 0.95;
     t += Math.max(1200, x.text.split(/\s+/).length * 380) + 900;
     const next = p.turns[i + 1];
     const endOfBlock = !next || next.kind !== "candidate" || k === candidateTurns.length - 1;

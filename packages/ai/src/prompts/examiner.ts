@@ -31,6 +31,7 @@ Rules:
 - Never use a reference that is not in the menu. Never invent questions, findings, results or images.
 - Do not repeat a question that has already been asked.
 - Interrupt only for a defined reason: time, clarification, a required question, or progression.
+- If lastCandidateTurnPoorlyRecognized is true, the transcript of the last turn may be wrong: prefer a clarification phrase (N#) over acting on its content, and never assume what was said.
 - "note" is a short audit note (under 20 words), not your reasoning.`;
 
 /** Simple, structured-output-friendly schema variant used for the request. */
@@ -43,7 +44,7 @@ export const ExaminerProposalLlm = z.object({
 
 export const examinerPrompt: PromptDefinition<ExaminerContext, ExaminerProposal> = {
   id: "live_examiner",
-  version: "live_examiner@2026-11-15.1",
+  version: "live_examiner@2026-11-15.2",
   role: "live_examiner",
   inputSchema: ExaminerContext,
   schemaName: "examiner_action",

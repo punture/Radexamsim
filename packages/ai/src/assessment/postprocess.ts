@@ -11,7 +11,7 @@ import type {
   UnsafeFlag,
   ValidationIssue,
 } from "@sim/contracts";
-import { classifyPrompting, morePrompted, type CaseTimeline } from "@sim/exam-engine";
+import { LOW_RECOGNITION_CONFIDENCE, classifyPrompting, morePrompted, type CaseTimeline } from "@sim/exam-engine";
 import type { AssessorLlmOutput } from "../prompts/assessment";
 import { spanTimeMs, validateSpan, type CandidateSegment } from "./evidence";
 
@@ -58,7 +58,7 @@ function matchesCriterion(criterion: string, claims: string[]): string | null {
 }
 
 /** Provider confidence below which recognized words cannot support a confident mark. */
-export const LOW_ASR_CONFIDENCE = 0.6;
+export const LOW_ASR_CONFIDENCE = LOW_RECOGNITION_CONFIDENCE;
 const isLowConfidence = (s: CandidateSegment | undefined) => !!s && s.confidence !== null && s.confidence < LOW_ASR_CONFIDENCE;
 
 export function postprocessPass(

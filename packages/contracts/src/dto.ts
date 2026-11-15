@@ -120,6 +120,8 @@ export const ExaminerContext = z.strictObject({
     z.strictObject({ speaker: z.enum(["examiner", "candidate"]), text: z.string(), atSeconds: z.number().int() }),
   ),
   secondsSinceCandidateSpoke: z.number().int().nullable(),
+  /** The last candidate turn came back from speech recognition with low confidence. */
+  lastCandidateTurnPoorlyRecognized: z.boolean().default(false),
 });
 export type ExaminerContext = z.infer<typeof ExaminerContext>;
 
