@@ -507,6 +507,15 @@ export function ownerRoutes(app: FastifyInstance, deps: Deps): void {
 
   route(app, {
     ...owner,
+    method: "GET",
+    url: "/api/owner/jobs/dead",
+    summary: "Dead-lettered background jobs (payload ids only; no clinical content)",
+    handler: async () =>
+      (await db.select({ id: jobs.id, kind: jobs.kind, attempts: jobs.attempts, lastError: jobs.lastError, updatedAt: jobs.updatedAt }).from(jobs).where(eq(jobs.status, "dead")).orderBy(desc(jobs.updatedAt)).limit(200)).map((j) => ({ ...j, lastError: j.lastError?.slice(0, 500) ?? null, updatedAt: j.updatedAt.toISOString() })),
+  });
+
+  route(app, {
+    ...owner,
     method: "POST",
     url: "/api/owner/jobs/requeue-dead",
     summary: "Requeue dead-lettered jobs after fixing the cause",
@@ -524,7 +533,7 @@ export function ownerRoutes(app: FastifyInstance, deps: Deps): void {
       const out = [];
       for (const r of rows) {
         const attempts = await db.select({ id: caseAttempts.id, ordinal: caseAttempts.ordinal, caseVersionId: caseAttempts.caseVersionId, status: caseAttempts.status }).from(caseAttempts).where(eq(caseAttempts.sessionId, r.s.id));
-        out.push({ sessionId: r.s.id, learner: r.u, mode: r.s.mode, status: r.s.status, outcome: r.s.outcome, createdAt: r.s.createdAt.toISOString(), attempts });
+        out.push({ sessionId: r.s.id, userId: r.s.userId, learner: r.u, mode: r.s.mode, status: r.s.status, outcome: r.s.outcome, createdAt: r.s.createdAt.toISOString(), attempts });
       }
       return out;
     },
