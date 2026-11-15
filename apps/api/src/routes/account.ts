@@ -5,7 +5,8 @@ import type { Deps } from "../deps";
 import { HttpError, IdParam, badRequest, notFound, route } from "../http";
 import { audit } from "../services/audit";
 
-export const POLICY_VERSION = "draft-2026-11-15";
+import { POLICY_VERSION } from "../policy";
+export { POLICY_VERSION };
 const ConsentKind = z.enum(["microphone_processing", "audio_retention", "browser_speech_vendor", "evaluation_use", "terms", "privacy"]);
 
 /** Account, consent, data export/deletion and appeals (spec §11, §17). */
@@ -164,6 +165,13 @@ export function accountRoutes(app: FastifyInstance, deps: Deps): void {
     tags: ["appeals"],
     auth: "user",
     handler: async ({ auth }) =>
-      (await db.select().from(appeals).where(eq(appeals.userId, auth!.userId)).orderBy(desc(appeals.createdAt))).map((a) => ({ id: a.id, kind: a.kind, status: a.status, resolution: a.resolution, createdAt: a.createdAt.toISOString(), caseAttemptId: a.caseAttemptId })),
+      (
+        await db
+          .select({ a: appeals, sessionId: caseAttempts.sessionId, ordinal: caseAttempts.ordinal })
+          .from(appeals)
+          .innerJoin(caseAttempts, eq(caseAttempts.id, appeals.caseAttemptId))
+          .where(eq(appeals.userId, auth!.userId))
+          .orderBy(desc(appeals.createdAt))
+      ).map(({ a, sessionId, ordinal }) => ({ id: a.id, kind: a.kind, status: a.status, resolution: a.resolution, createdAt: a.createdAt.toISOString(), caseAttemptId: a.caseAttemptId, sessionId, caseNumber: ordinal + 1 })),
   });
 }

@@ -14,7 +14,9 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
   const [needMfa, setNeedMfa] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const next = params.get("next") ?? "/app";
+  // Only same-site relative paths are honoured (no open redirect).
+  const rawNext = params.get("next") ?? "/app";
+  const next = rawNext.startsWith("/") && !rawNext.startsWith("//") && !rawNext.startsWith("/\\") ? rawNext : "/app";
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,7 +30,7 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
       }
       if (mode === "sign-up") {
         await api("/api/auth/register", { body: { email, password, acceptTerms: accept } });
-        router.push("/app");
+        router.push(next.startsWith("/owner") ? "/app" : next);
         return;
       }
       const r = await api<{ role: string; mfaRequired: boolean; mfaEnrolled: boolean }>("/api/auth/login", { body: { email, password } });

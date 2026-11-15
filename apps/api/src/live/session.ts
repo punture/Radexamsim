@@ -70,9 +70,12 @@ import {
   transcriptSegments,
   viewerCommands,
   and,
+  consents,
+  desc,
   type Tx,
 } from "@sim/db";
 import type { Deps } from "../deps";
+import { POLICY_VERSION } from "../policy";
 import { getCaseVersion, getProfile, getSwitches } from "../services/content";
 
 /**
@@ -425,6 +428,11 @@ export class LiveSession {
         if (await this.commandSeen(m.commandId)) return;
         return this.practicePause(m.type === "practice_pause", m.commandId);
       case "audio_start":
+        // Server speech recognition processes microphone audio: explicit consent required.
+        if (!(await this.hasConsent(["microphone_processing"]))) {
+          this.notice("error", "consent_required", "Consent to microphone processing is required before audio can be processed.");
+          return;
+        }
         return this.openServerAsr(m.sampleRate);
       case "audio_stop":
         this.asr?.finalize();
@@ -720,12 +728,25 @@ export class LiveSession {
 
   // ------------------------------------------------------------------ candidate speech
 
+  /** Latest consent of each kind must be granted under the current policy version. */
+  private async hasConsent(kinds: ("microphone_processing" | "browser_speech_vendor")[]): Promise<boolean> {
+    const rows = await this.deps.db.select().from(consents).where(eq(consents.userId, this.userId)).orderBy(desc(consents.createdAt));
+    return kinds.every((k) => {
+      const latest = rows.find((r) => r.kind === k);
+      return !!latest && latest.granted && latest.policyVersion === POLICY_VERSION;
+    });
+  }
+
   private async onCandidateTranscript(m: Extract<ClientMessage, { type: "candidate_transcript" }>): Promise<void> {
     const allowed =
       (m.source === "client_asr" && this.deps.speech.asr === "browser") ||
       (m.source === "typed" && (this.inputMode === "typed_practice" || this.mode === "owner_preview")) ||
       (m.source === "dev_injected" && this.deps.config.ALLOW_DEV_INJECTION && this.deps.config.NODE_ENV !== "production");
     if (!allowed) return this.fail(m.commandId, "source_not_allowed", "This input source is not enabled for this session.");
+    // Browser speech recognition may send audio to the browser vendor: explicit consent required.
+    if (m.source === "client_asr" && !(await this.hasConsent(["microphone_processing", "browser_speech_vendor"]))) {
+      return this.fail(m.commandId, "consent_required", "Consent to microphone processing and browser speech recognition is required. Update it in Account or the station setup.");
+    }
     if (this.status !== "active" || !this.current || this.practicePaused) return this.fail(m.commandId, "not_active", "The examination is not active.");
     const durationMs = Math.max(0, Math.min(120_000, m.clientEndMs - m.clientStartMs));
     await this.recordCandidateSegment({

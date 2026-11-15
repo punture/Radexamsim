@@ -37,7 +37,7 @@ function AppealCard({ a, onDone }: { a: Appeal; onDone: () => void }) {
             </fieldset>
           )}
           <div className="row" style={{ alignItems: "flex-end" }}>
-            <label className="field">Decision<select value={decision} onChange={(e) => setDecision(e.target.value as typeof decision)}><option value="upheld">upheld (original stands)</option><option value="revised">revised</option><option value="rejected">rejected</option></select></label>
+            <label className="field">Decision<select value={decision} onChange={(e) => setDecision(e.target.value as typeof decision)}><option value="upheld">original result confirmed after review</option><option value="revised">result revised</option><option value="rejected">not accepted for review (no basis / out of scope)</option></select></label>
             <label className="row" style={{ gap: 6 }}><input type="checkbox" checked={reassess} onChange={(e) => setReassess(e.target.checked)} /> Reassess (new version, forced second pass)</label>
           </div>
           <div className="field"><label htmlFor={`res-${a.id}`}>Resolution shown to the learner</label><textarea id={`res-${a.id}`} value={resolution} onChange={(e) => setResolution(e.target.value)} /></div>

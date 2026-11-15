@@ -70,16 +70,18 @@ export function learningRoutes(app: FastifyInstance, deps: Deps): void {
         };
       });
       const attempts = await db
-        .select({ payload: caseVersions.payload, mode: caseAttempts.firstExposure })
+        .select({ payload: caseVersions.payload, isFixture: caseVersions.isFixture })
         .from(caseAttempts)
         .innerJoin(caseVersions, eq(caseVersions.versionId, caseAttempts.caseVersionId))
         .where(and(eq(caseAttempts.userId, auth!.userId), eq(caseAttempts.status, "closed")));
       const coverage: Record<string, number> = {};
-      for (const a of attempts) for (const t of a.payload.tags.anatomy) coverage[t] = (coverage[t] ?? 0) + 1;
+      const fixtureCoverage: Record<string, number> = {};
+      for (const a of attempts) for (const t of a.payload.tags.anatomy) (a.isFixture ? fixtureCoverage : coverage)[t] = ((a.isFixture ? fixtureCoverage : coverage)[t] ?? 0) + 1;
       return {
         note: "Trends are descriptive and based on the counts shown. One attempt is a signal, not a stable trait; repeated exposure to the same case is not evidence of transfer to new cases. Development-fixture results are shown separately and excluded from trends.",
         perSkill,
         anatomyCoverage: coverage,
+        fixtureAnatomyCoverage: fixtureCoverage,
       };
     },
   });
