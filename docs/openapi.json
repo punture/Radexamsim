@@ -1,0 +1,5290 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Neuroradiology Oral Exam Simulator API",
+    "version": "0.1.0",
+    "description": "HTTP API. The live examination uses the WebSocket protocol documented in docs/EVENT_CONTRACTS.md."
+  },
+  "components": {
+    "securitySchemes": {
+      "cookieSession": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "sim_session",
+        "description": "Local development auth. State-changing requests also require header x-sim-csrf: 1."
+      },
+      "bearerSupabase": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Supabase access token verified against the project JWKS."
+      }
+    }
+  },
+  "paths": {
+    "/api/health": {
+      "get": {
+        "summary": "Liveness and dependency status (no secrets)",
+        "tags": [
+          "ops"
+        ],
+        "x-auth": "public",
+        "security": [],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/profiles": {
+      "get": {
+        "summary": "Available examination profiles (with verification status and unresolved conflicts)",
+        "tags": [
+          "profiles"
+        ],
+        "x-auth": "public",
+        "security": [],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/openapi.json": {
+      "get": {
+        "summary": "OpenAPI 3.1 description of the HTTP API",
+        "tags": [
+          "ops"
+        ],
+        "x-auth": "public",
+        "security": [],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "summary": "Create a local development account (disabled when managed auth is configured)",
+        "tags": [
+          "auth"
+        ],
+        "x-auth": "public",
+        "security": [],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "format": "email",
+                    "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 200
+                  },
+                  "displayName": {
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "acceptTerms": {
+                    "type": "boolean",
+                    "const": true
+                  }
+                },
+                "required": [
+                  "email",
+                  "password",
+                  "acceptTerms"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "summary": "Sign in with a local development account",
+        "tags": [
+          "auth"
+        ],
+        "x-auth": "public",
+        "security": [],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "format": "email",
+                    "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 200
+                  }
+                },
+                "required": [
+                  "email",
+                  "password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "summary": "Sign out",
+        "tags": [
+          "auth"
+        ],
+        "x-auth": "user",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "summary": "Current user",
+        "tags": [
+          "auth"
+        ],
+        "x-auth": "public",
+        "security": [],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/auth/mfa/enroll": {
+      "post": {
+        "summary": "Begin TOTP enrolment (owner, local auth)",
+        "tags": [
+          "auth"
+        ],
+        "x-auth": "user",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/auth/mfa/verify": {
+      "post": {
+        "summary": "Verify a TOTP code for this sign-in session",
+        "tags": [
+          "auth"
+        ],
+        "x-auth": "user",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "pattern": "^\\d{6}$"
+                  }
+                },
+                "required": [
+                  "code"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/sessions": {
+      "post": {
+        "summary": "Create a station session (assembles an exam form; checks entitlement)",
+        "tags": [
+          "sessions"
+        ],
+        "x-auth": "user",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "profileVersionId": {
+                    "type": "string",
+                    "minLength": 3
+                  },
+                  "mode": {
+                    "type": "string",
+                    "enum": [
+                      "exam",
+                      "practice",
+                      "owner_preview"
+                    ]
+                  },
+                  "caseCount": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 10
+                  },
+                  "inputMode": {
+                    "default": "voice",
+                    "type": "string",
+                    "enum": [
+                      "voice",
+                      "typed_practice"
+                    ]
+                  },
+                  "demo": {
+                    "type": "boolean"
+                  },
+                  "previewCaseVersionIds": {
+                    "maxItems": 10,
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "profileVersionId",
+                  "mode"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      },
+      "get": {
+        "summary": "List my sessions",
+        "tags": [
+          "sessions"
+        ],
+        "x-auth": "user",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "sessionId": {
+                        "type": "string",
+                        "minLength": 8,
+                        "maxLength": 100
+                      },
+                      "mode": {
+                        "type": "string",
+                        "enum": [
+                          "exam",
+                          "practice",
+                          "owner_preview"
+                        ]
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "preflight",
+                          "ready",
+                          "active",
+                          "technically_interrupted",
+                          "finalizing",
+                          "complete",
+                          "aborted"
+                        ]
+                      },
+                      "outcome": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": [
+                              "completed",
+                              "time_expired",
+                              "candidate_ended",
+                              "user_aborted",
+                              "invalidated_technical"
+                            ]
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "profileDisplayName": {
+                        "type": "string"
+                      },
+                      "createdAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                      },
+                      "endedAt": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "caseCount": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      "resultStatus": {
+                        "type": "string",
+                        "enum": [
+                          "not_started",
+                          "pending",
+                          "available",
+                          "provisional",
+                          "unavailable"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "sessionId",
+                      "mode",
+                      "status",
+                      "outcome",
+                      "profileDisplayName",
+                      "createdAt",
+                      "endedAt",
+                      "caseCount",
+                      "resultStatus"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/sessions/{id}": {
+      "get": {
+        "summary": "Session state (candidate-safe DTO)",
+        "tags": [
+          "sessions"
+        ],
+        "x-auth": "user",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "sessionId": {
+                      "type": "string",
+                      "minLength": 8,
+                      "maxLength": 100
+                    },
+                    "mode": {
+                      "type": "string",
+                      "enum": [
+                        "exam",
+                        "practice",
+                        "owner_preview"
+                      ]
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "preflight",
+                        "ready",
+                        "active",
+                        "technically_interrupted",
+                        "finalizing",
+                        "complete",
+                        "aborted"
+                      ]
+                    },
+                    "outcome": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "completed",
+                            "time_expired",
+                            "candidate_ended",
+                            "user_aborted",
+                            "invalidated_technical"
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "profile": {
+                      "type": "object",
+                      "properties": {
+                        "versionId": {
+                          "type": "string"
+                        },
+                        "displayName": {
+                          "type": "string"
+                        },
+                        "board": {
+                          "type": "string"
+                        },
+                        "verificationStatus": {
+                          "type": "string"
+                        },
+                        "stationDurationSeconds": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        }
+                      },
+                      "required": [
+                        "versionId",
+                        "displayName",
+                        "board",
+                        "verificationStatus",
+                        "stationDurationSeconds"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "clock": {
+                      "type": "object",
+                      "properties": {
+                        "durationMs": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "remainingMs": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "running": {
+                          "type": "boolean"
+                        },
+                        "serverNowMs": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        }
+                      },
+                      "required": [
+                        "durationMs",
+                        "remainingMs",
+                        "running",
+                        "serverNowMs"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "caseIndex": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "caseCount": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "currentCase": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "caseAttemptId": {
+                              "type": "string",
+                              "minLength": 8,
+                              "maxLength": 100
+                            },
+                            "neutralLabel": {
+                              "type": "string"
+                            },
+                            "history": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            "revealedStageCount": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 9007199254740991
+                            },
+                            "assets": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "handle": {
+                                    "type": "string",
+                                    "minLength": 16,
+                                    "maxLength": 64
+                                  },
+                                  "label": {
+                                    "type": "string"
+                                  },
+                                  "kind": {
+                                    "type": "string",
+                                    "enum": [
+                                      "still",
+                                      "stack",
+                                      "cine",
+                                      "dicom_stack"
+                                    ]
+                                  },
+                                  "modality": {
+                                    "type": "string"
+                                  },
+                                  "sequence": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  },
+                                  "plane": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  },
+                                  "frameCount": {
+                                    "type": "integer",
+                                    "exclusiveMinimum": 0,
+                                    "maximum": 9007199254740991
+                                  },
+                                  "mimeType": {
+                                    "type": "string"
+                                  },
+                                  "initialFrameIndex": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 9007199254740991
+                                  },
+                                  "initialZoom": {
+                                    "anyOf": [
+                                      {
+                                        "type": "string",
+                                        "const": "fit"
+                                      },
+                                      {
+                                        "type": "number"
+                                      }
+                                    ]
+                                  },
+                                  "frameRateFps": {
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
+                                  },
+                                  "disclosedAtStage": {
+                                    "type": "integer",
+                                    "minimum": 1,
+                                    "maximum": 9007199254740991
+                                  },
+                                  "isPlaceholder": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "handle",
+                                  "label",
+                                  "kind",
+                                  "modality",
+                                  "sequence",
+                                  "plane",
+                                  "frameCount",
+                                  "mimeType",
+                                  "initialFrameIndex",
+                                  "initialZoom",
+                                  "frameRateFps",
+                                  "disclosedAtStage",
+                                  "isPlaceholder"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "viewer": {
+                              "type": "object",
+                              "properties": {
+                                "permissions": {
+                                  "type": "object",
+                                  "properties": {
+                                    "scroll": {
+                                      "type": "boolean"
+                                    },
+                                    "zoomPan": {
+                                      "type": "boolean"
+                                    },
+                                    "windowing": {
+                                      "type": "string",
+                                      "enum": [
+                                        "none",
+                                        "display_brightness_contrast",
+                                        "dicom_window_level"
+                                      ]
+                                    },
+                                    "cine": {
+                                      "type": "boolean"
+                                    },
+                                    "comparison": {
+                                      "type": "boolean"
+                                    }
+                                  },
+                                  "required": [
+                                    "scroll",
+                                    "zoomPan",
+                                    "windowing",
+                                    "cine",
+                                    "comparison"
+                                  ],
+                                  "additionalProperties": false
+                                },
+                                "layout": {
+                                  "type": "string",
+                                  "enum": [
+                                    "single",
+                                    "side_by_side",
+                                    "grid_2x2"
+                                  ]
+                                },
+                                "panes": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "paneId": {
+                                        "type": "string"
+                                      },
+                                      "handle": {
+                                        "type": "string"
+                                      },
+                                      "frameIndex": {
+                                        "anyOf": [
+                                          {
+                                            "type": "integer",
+                                            "minimum": 0,
+                                            "maximum": 9007199254740991
+                                          },
+                                          {
+                                            "type": "null"
+                                          }
+                                        ]
+                                      },
+                                      "zoom": {
+                                        "anyOf": [
+                                          {
+                                            "type": "string",
+                                            "const": "fit"
+                                          },
+                                          {
+                                            "type": "number"
+                                          }
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "paneId",
+                                      "handle",
+                                      "frameIndex",
+                                      "zoom"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                },
+                                "lastCommandSeq": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 9007199254740991
+                                }
+                              },
+                              "required": [
+                                "permissions",
+                                "layout",
+                                "panes",
+                                "lastCommandSeq"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "deliveredPrompts": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "utteranceId": {
+                                    "type": "string",
+                                    "minLength": 8,
+                                    "maxLength": 100
+                                  },
+                                  "heardText": {
+                                    "type": "string"
+                                  },
+                                  "atMs": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 9007199254740991
+                                  }
+                                },
+                                "required": [
+                                  "utteranceId",
+                                  "heardText",
+                                  "atMs"
+                                ],
+                                "additionalProperties": false
+                              }
+                            }
+                          },
+                          "required": [
+                            "caseAttemptId",
+                            "neutralLabel",
+                            "history",
+                            "revealedStageCount",
+                            "assets",
+                            "viewer",
+                            "deliveredPrompts"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "liveTranscriptDefault": {
+                      "type": "boolean"
+                    },
+                    "inputMode": {
+                      "type": "string",
+                      "enum": [
+                        "voice",
+                        "typed_practice"
+                      ]
+                    },
+                    "speech": {
+                      "type": "object",
+                      "properties": {
+                        "asr": {
+                          "type": "string",
+                          "enum": [
+                            "server_stream",
+                            "browser",
+                            "dev_injection_only"
+                          ]
+                        },
+                        "tts": {
+                          "type": "string",
+                          "enum": [
+                            "server_stream",
+                            "browser",
+                            "none"
+                          ]
+                        },
+                        "endOfTurnSilenceMs": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "allowBargeIn": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "asr",
+                        "tts",
+                        "endOfTurnSilenceMs",
+                        "allowBargeIn"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "practice": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "hintsAvailable": {
+                              "type": "boolean"
+                            },
+                            "paused": {
+                              "type": "boolean"
+                            }
+                          },
+                          "required": [
+                            "hintsAvailable",
+                            "paused"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "containsDevelopmentFixtures": {
+                      "type": "boolean"
+                    },
+                    "lastServerSeq": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "sessionId",
+                    "mode",
+                    "status",
+                    "outcome",
+                    "profile",
+                    "clock",
+                    "caseIndex",
+                    "caseCount",
+                    "currentCase",
+                    "liveTranscriptDefault",
+                    "inputMode",
+                    "speech",
+                    "practice",
+                    "containsDevelopmentFixtures",
+                    "lastServerSeq"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/sessions/{id}/preflight": {
+      "post": {
+        "summary": "Record preflight checks (microphone, audio, rendering, connection, browser)",
+        "tags": [
+          "sessions"
+        ],
+        "x-auth": "user",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "microphone": {
+                    "type": "string",
+                    "enum": [
+                      "granted",
+                      "denied",
+                      "unavailable",
+                      "not_required"
+                    ]
+                  },
+                  "audioPlayback": {
+                    "type": "string",
+                    "enum": [
+                      "ok",
+                      "failed",
+                      "skipped"
+                    ]
+                  },
+                  "imageRender": {
+                    "type": "string",
+                    "enum": [
+                      "ok",
+                      "failed"
+                    ]
+                  },
+                  "connectionRttMs": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 60000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "speechRecognition": {
+                    "type": "string",
+                    "enum": [
+                      "available",
+                      "unavailable",
+                      "not_required"
+                    ]
+                  },
+                  "browser": {
+                    "type": "object",
+                    "properties": {
+                      "userAgentFamily": {
+                        "type": "string",
+                        "maxLength": 60
+                      },
+                      "webAudio": {
+                        "type": "boolean"
+                      },
+                      "webSocket": {
+                        "type": "boolean"
+                      },
+                      "screenWidth": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      "screenHeight": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      }
+                    },
+                    "required": [
+                      "userAgentFamily",
+                      "webAudio",
+                      "webSocket",
+                      "screenWidth",
+                      "screenHeight"
+                    ]
+                  }
+                },
+                "required": [
+                  "microphone",
+                  "audioPlayback",
+                  "imageRender",
+                  "connectionRttMs",
+                  "speechRecognition",
+                  "browser"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/sessions/{id}/ws-ticket": {
+      "post": {
+        "summary": "Issue a single-use WebSocket ticket for the live session",
+        "tags": [
+          "sessions"
+        ],
+        "x-auth": "user",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/sessions/{id}/debrief": {
+      "get": {
+        "summary": "Debrief (released according to the profile's feedback-release policy)",
+        "tags": [
+          "results"
+        ],
+        "x-auth": "user",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "sessionId": {
+                      "type": "string",
+                      "minLength": 8,
+                      "maxLength": 100
+                    },
+                    "mode": {
+                      "type": "string",
+                      "enum": [
+                        "exam",
+                        "practice",
+                        "owner_preview"
+                      ]
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "pending",
+                        "available",
+                        "partial",
+                        "unavailable"
+                      ]
+                    },
+                    "pendingReason": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "cases": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "caseAttemptId": {
+                            "type": "string",
+                            "minLength": 8,
+                            "maxLength": 100
+                          },
+                          "caseLabel": {
+                            "type": "string"
+                          },
+                          "assessmentId": {
+                            "type": "string",
+                            "minLength": 8,
+                            "maxLength": 100
+                          },
+                          "assessorKind": {
+                            "type": "string",
+                            "enum": [
+                              "llm",
+                              "dev_baseline",
+                              "mock"
+                            ]
+                          },
+                          "overall": {
+                            "type": "object",
+                            "properties": {
+                              "summary": {
+                                "type": "string"
+                              },
+                              "ratingDisplay": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "ratingDisclaimer": {
+                                "type": "string"
+                              },
+                              "withheldReason": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "provisional": {
+                                "type": "boolean"
+                              },
+                              "uncertaintyStatement": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "summary",
+                              "ratingDisplay",
+                              "ratingDisclaimer",
+                              "withheldReason",
+                              "provisional",
+                              "uncertaintyStatement"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "strengths": {
+                            "maxItems": 3,
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "elementId": {
+                                  "type": "string"
+                                },
+                                "summary": {
+                                  "type": "string"
+                                },
+                                "promptingLevel": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "enum": [
+                                        "spontaneous",
+                                        "standard_question",
+                                        "targeted_probe",
+                                        "rescue",
+                                        "examiner_supplied"
+                                      ]
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "evidence": {
+                                  "minItems": 1,
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "segmentId": {
+                                        "type": "string",
+                                        "minLength": 8,
+                                        "maxLength": 100
+                                      },
+                                      "quote": {
+                                        "type": "string"
+                                      },
+                                      "atMs": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 9007199254740991
+                                      }
+                                    },
+                                    "required": [
+                                      "segmentId",
+                                      "quote",
+                                      "atMs"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                }
+                              },
+                              "required": [
+                                "elementId",
+                                "summary",
+                                "promptingLevel",
+                                "evidence"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "issues": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "elementId": {
+                                  "type": "string"
+                                },
+                                "rank": {
+                                  "type": "integer",
+                                  "minimum": 1,
+                                  "maximum": 9007199254740991
+                                },
+                                "severity": {
+                                  "type": "string",
+                                  "enum": [
+                                    "minor",
+                                    "important",
+                                    "critical"
+                                  ]
+                                },
+                                "status": {
+                                  "type": "string",
+                                  "enum": [
+                                    "demonstrated",
+                                    "partially_demonstrated",
+                                    "incorrect",
+                                    "not_demonstrated",
+                                    "not_assessable",
+                                    "uncertain"
+                                  ]
+                                },
+                                "whatHappened": {
+                                  "type": "string"
+                                },
+                                "evidence": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "segmentId": {
+                                        "type": "string",
+                                        "minLength": 8,
+                                        "maxLength": 100
+                                      },
+                                      "quote": {
+                                        "type": "string"
+                                      },
+                                      "atMs": {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 9007199254740991
+                                      }
+                                    },
+                                    "required": [
+                                      "segmentId",
+                                      "quote",
+                                      "atMs"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                },
+                                "opportunityDescription": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ]
+                                },
+                                "whyItMatters": {
+                                  "type": "string"
+                                },
+                                "strongerResponse": {
+                                  "type": "string"
+                                },
+                                "howToPractise": {
+                                  "type": "string"
+                                },
+                                "promptingLevel": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "enum": [
+                                        "spontaneous",
+                                        "standard_question",
+                                        "targeted_probe",
+                                        "rescue",
+                                        "examiner_supplied"
+                                      ]
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "relatedElementIds": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                }
+                              },
+                              "required": [
+                                "elementId",
+                                "rank",
+                                "severity",
+                                "status",
+                                "whatHappened",
+                                "evidence",
+                                "opportunityDescription",
+                                "whyItMatters",
+                                "strongerResponse",
+                                "howToPractise",
+                                "promptingLevel",
+                                "relatedElementIds"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "promptingTable": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "elementId": {
+                                  "type": "string"
+                                },
+                                "construct": {
+                                  "type": "string"
+                                },
+                                "status": {
+                                  "type": "string",
+                                  "enum": [
+                                    "demonstrated",
+                                    "partially_demonstrated",
+                                    "incorrect",
+                                    "not_demonstrated",
+                                    "not_assessable",
+                                    "uncertain"
+                                  ]
+                                },
+                                "promptingLevel": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "enum": [
+                                        "spontaneous",
+                                        "standard_question",
+                                        "targeted_probe",
+                                        "rescue",
+                                        "examiner_supplied"
+                                      ]
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "corrected": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "elementId",
+                                "construct",
+                                "status",
+                                "promptingLevel",
+                                "corrected"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "referenceApproach": {
+                            "type": "object",
+                            "properties": {
+                              "text": {
+                                "type": "string"
+                              },
+                              "alternatives": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                }
+                              }
+                            },
+                            "required": [
+                              "text",
+                              "alternatives"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "technicalLimitations": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "improvementActions": {
+                            "maxItems": 3,
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "isDevelopmentFixture": {
+                            "type": "boolean"
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                          }
+                        },
+                        "required": [
+                          "caseAttemptId",
+                          "caseLabel",
+                          "assessmentId",
+                          "assessorKind",
+                          "overall",
+                          "strengths",
+                          "issues",
+                          "promptingTable",
+                          "referenceApproach",
+                          "technicalLimitations",
+                          "improvementActions",
+                          "isDevelopmentFixture",
+                          "createdAt"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "nextActivity": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "unseen_case",
+                                "revision_practice",
+                                "none_available"
+                              ]
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "targetSkills": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "detection",
+                                  "localization",
+                                  "feature_description",
+                                  "differential_prioritization",
+                                  "integration",
+                                  "additional_imaging",
+                                  "urgency",
+                                  "consultation",
+                                  "communication"
+                                ]
+                              }
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "description",
+                            "targetSkills"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "sessionId",
+                    "mode",
+                    "status",
+                    "pendingReason",
+                    "cases",
+                    "nextActivity"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/sessions/{id}/transcript": {
+      "get": {
+        "summary": "Transcript of released cases (examiner lines show only what was played)",
+        "tags": [
+          "results"
+        ],
+        "x-auth": "user",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "minLength": 8,
+                        "maxLength": 100
+                      },
+                      "speaker": {
+                        "type": "string",
+                        "enum": [
+                          "candidate",
+                          "examiner"
+                        ]
+                      },
+                      "text": {
+                        "type": "string"
+                      },
+                      "interrupted": {
+                        "type": "boolean"
+                      },
+                      "atMs": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "source": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": [
+                              "server_asr",
+                              "client_asr",
+                              "typed",
+                              "dev_injected"
+                            ]
+                          },
+                          {
+                            "type": "string",
+                            "const": "examiner_tts"
+                          }
+                        ]
+                      },
+                      "caseAttemptId": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 8,
+                            "maxLength": 100
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "stageOrdinal": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "confidence": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "speaker",
+                      "text",
+                      "interrupted",
+                      "atMs",
+                      "source",
+                      "caseAttemptId",
+                      "stageOrdinal",
+                      "confidence"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/sessions/{id}/replay": {
+      "get": {
+        "summary": "Replay material for released cases: images (opaque handles) and owner-approved key annotations",
+        "tags": [
+          "results"
+        ],
+        "x-auth": "user",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/sessions/{id}/abort": {
+      "post": {
+        "summary": "Abandon a session that has not started",
+        "tags": [
+          "sessions"
+        ],
+        "x-auth": "user",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/media/{handle}/{frame}": {
+      "get": {
+        "summary": "Stream one frame of a disclosed asset (authorized per request)",
+        "tags": [
+          "media"
+        ],
+        "x-auth": "user",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "handle",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "frame",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/billing/usage": {
+      "get": {
+        "summary": "Allowance, reserved, consumed and adjusted minutes; demo allowance",
+        "tags": [
+          "billing"
+        ],
+        "x-auth": "user",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "plan": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "demo",
+                            "individual_monthly",
+                            "individual_annual"
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "entitlementStatus": {
+                      "type": "string",
+                      "enum": [
+                        "none",
+                        "demo",
+                        "trialing",
+                        "active",
+                        "past_due",
+                        "canceled_pending_period_end",
+                        "canceled",
+                        "suspended"
+                      ]
+                    },
+                    "periodEndsAt": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "date-time",
+                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "allottedMinutes": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "reservedMinutes": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "consumedMinutes": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "adjustedMinutes": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "availableMinutes": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "demoCasesRemaining": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "canStartPaidStation": {
+                      "type": "boolean"
+                    },
+                    "blockingReason": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "currentPeriod": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "startedAt": {
+                              "type": "string",
+                              "format": "date-time",
+                              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                            },
+                            "allottedMinutes": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991
+                            },
+                            "consumedMinutes": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991
+                            },
+                            "adjustedMinutes": {
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991
+                            }
+                          },
+                          "required": [
+                            "startedAt",
+                            "allottedMinutes",
+                            "consumedMinutes",
+                            "adjustedMinutes"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "plan",
+                    "entitlementStatus",
+                    "periodEndsAt",
+                    "allottedMinutes",
+                    "reservedMinutes",
+                    "consumedMinutes",
+                    "adjustedMinutes",
+                    "availableMinutes",
+                    "demoCasesRemaining",
+                    "canStartPaidStation",
+                    "blockingReason",
+                    "currentPeriod"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/billing/plans": {
+      "get": {
+        "summary": "Plan catalogue (display only; Stripe holds authoritative prices)",
+        "tags": [
+          "billing"
+        ],
+        "x-auth": "public",
+        "security": [],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/billing/checkout": {
+      "post": {
+        "summary": "Create a Stripe Checkout session (subscription mode)",
+        "tags": [
+          "billing"
+        ],
+        "x-auth": "user",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "plan": {
+                    "type": "string",
+                    "enum": [
+                      "individual_monthly",
+                      "individual_annual"
+                    ]
+                  }
+                },
+                "required": [
+                  "plan"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/billing/portal": {
+      "post": {
+        "summary": "Open the Stripe customer portal",
+        "tags": [
+          "billing"
+        ],
+        "x-auth": "user",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/stripe/webhook": {
+      "post": {
+        "summary": "Stripe webhook (signature-verified on the raw body; durable and deduplicated)",
+        "tags": [
+          "billing"
+        ],
+        "x-auth": "public",
+        "security": [],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/account/consents": {
+      "get": {
+        "summary": "Current consent state (latest record per kind)",
+        "tags": [
+          "account"
+        ],
+        "x-auth": "user",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      },
+      "post": {
+        "summary": "Grant or withdraw a consent (append-only record)",
+        "tags": [
+          "account"
+        ],
+        "x-auth": "user",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "microphone_processing",
+                      "audio_retention",
+                      "browser_speech_vendor",
+                      "evaluation_use",
+                      "terms",
+                      "privacy"
+                    ]
+                  },
+                  "granted": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "granted"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/account/export": {
+      "post": {
+        "summary": "Request an export of my own data (the private case bank is excluded)",
+        "tags": [
+          "account"
+        ],
+        "x-auth": "user",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/account/data-requests": {
+      "get": {
+        "summary": "My export/deletion requests",
+        "tags": [
+          "account"
+        ],
+        "x-auth": "user",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/account/exports/{id}/download": {
+      "get": {
+        "summary": "Download a completed export",
+        "tags": [
+          "account"
+        ],
+        "x-auth": "user",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/account/delete": {
+      "post": {
+        "summary": "Delete my account and personal data (confirmation required)",
+        "tags": [
+          "account"
+        ],
+        "x-auth": "user",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "confirmEmail": {
+                    "type": "string",
+                    "format": "email",
+                    "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                  }
+                },
+                "required": [
+                  "confirmEmail"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/account/recordings": {
+      "get": {
+        "summary": "Retained audio recordings (only with opt-in consent)",
+        "tags": [
+          "account"
+        ],
+        "x-auth": "user",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/appeals": {
+      "post": {
+        "summary": "Dispute a transcription or a grading decision (original result is preserved)",
+        "tags": [
+          "appeals"
+        ],
+        "x-auth": "user",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "caseAttemptId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "assessmentId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "transcript",
+                      "grading"
+                    ]
+                  },
+                  "statement": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 4000
+                  },
+                  "disputedElementIds": {
+                    "default": [],
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "maxLength": 80
+                    }
+                  },
+                  "transcriptCorrections": {
+                    "default": [],
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "segmentId": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "proposedText": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 4000
+                        }
+                      },
+                      "required": [
+                        "segmentId",
+                        "proposedText"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "caseAttemptId",
+                  "assessmentId",
+                  "kind",
+                  "statement"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      },
+      "get": {
+        "summary": "My appeals and their outcomes",
+        "tags": [
+          "appeals"
+        ],
+        "x-auth": "user",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/learning/plan": {
+      "get": {
+        "summary": "Current learning plan (opaque assignment tokens only)",
+        "tags": [
+          "learning"
+        ],
+        "x-auth": "user",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/learning/preferences": {
+      "put": {
+        "summary": "Set the learner's plan pace (spacing between plan items)",
+        "tags": [
+          "learning"
+        ],
+        "x-auth": "user",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "pace": {
+                    "type": "string",
+                    "enum": [
+                      "compressed",
+                      "standard",
+                      "relaxed"
+                    ]
+                  }
+                },
+                "required": [
+                  "pace"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/learning/plan/items/{itemId}/status": {
+      "post": {
+        "summary": "Record progress on a plan item (the generated plan itself is not edited)",
+        "tags": [
+          "learning"
+        ],
+        "x-auth": "user",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "suggested",
+                      "started",
+                      "completed",
+                      "skipped"
+                    ]
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/learning/plan/start": {
+      "post": {
+        "summary": "Start the practice station for a plan item (resolves the opaque assignment server-side)",
+        "tags": [
+          "learning"
+        ],
+        "x-auth": "user",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "assignmentToken": {
+                    "type": "string",
+                    "pattern": "^as_[a-f0-9]{24}$"
+                  },
+                  "profileVersionId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "assignmentToken",
+                  "profileVersionId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/learning/progress": {
+      "get": {
+        "summary": "Skill trends with denominators, separated by mode/exposure/assistance",
+        "tags": [
+          "learning"
+        ],
+        "x-auth": "user",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/learning/practice-recommendation": {
+      "get": {
+        "summary": "Practice targeting from the learner's weakest skill (deterministic)",
+        "tags": [
+          "learning"
+        ],
+        "x-auth": "user",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/owner/overview": {
+      "get": {
+        "summary": "Owner overview: queue counts, case pipeline, content requests, dead jobs",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/owner/review-items": {
+      "get": {
+        "summary": "Exception queue (filter by status/priority/kind)",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/owner/review-items/{id}/resolve": {
+      "post": {
+        "summary": "Resolve or dismiss a queue item",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "resolved",
+                      "dismissed"
+                    ]
+                  },
+                  "resolution": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000
+                  }
+                },
+                "required": [
+                  "status",
+                  "resolution"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/owner/cases": {
+      "get": {
+        "summary": "Cases with their versions and status",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a draft case from a full case JSON",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "payload": {}
+                },
+                "required": [
+                  "payload"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/owner/case-versions/{versionId}": {
+      "get": {
+        "summary": "Full case version for review: content, hashes, validation, critiques, gate, diff",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "versionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      },
+      "put": {
+        "summary": "Save a draft (optimistic concurrency via rowVersion)",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "versionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "rowVersion": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "payload": {}
+                },
+                "required": [
+                  "rowVersion",
+                  "payload"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/owner/cases/import": {
+      "post": {
+        "summary": "Import a sim-case-import@1 package (zip) produced by tools/ingestion as a DRAFT",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/owner/case-versions/{versionId}/new-version": {
+      "post": {
+        "summary": "Create a new draft version (revision)",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "versionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/owner/case-versions/{versionId}/submit": {
+      "post": {
+        "summary": "Submit a draft for automated checks",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "versionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/owner/case-versions/{versionId}/approve": {
+      "post": {
+        "summary": "Owner clinical approval bound to the reviewed content hash",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "versionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "attestation": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 500
+                  },
+                  "notes": {
+                    "default": "",
+                    "type": "string",
+                    "maxLength": 2000
+                  },
+                  "expectedClinicalContentHash": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  }
+                },
+                "required": [
+                  "attestation",
+                  "expectedClinicalContentHash"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/owner/case-versions/{versionId}/request-changes": {
+      "post": {
+        "summary": "Return a version to draft with notes",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "versionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "notes": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000
+                  }
+                },
+                "required": [
+                  "notes"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/owner/case-versions/{versionId}/clearances": {
+      "post": {
+        "summary": "Record rights/privacy clearance (separate from clinical approval)",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "versionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "rights": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "unresolved",
+                          "cleared",
+                          "restricted",
+                          "withdrawn"
+                        ]
+                      },
+                      "basis": {
+                        "type": "string",
+                        "maxLength": 1000
+                      },
+                      "restrictions": {
+                        "type": "string",
+                        "maxLength": 1000
+                      }
+                    },
+                    "required": [
+                      "status",
+                      "basis",
+                      "restrictions"
+                    ]
+                  },
+                  "privacy": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "unresolved",
+                          "cleared",
+                          "restricted",
+                          "withdrawn"
+                        ]
+                      },
+                      "basis": {
+                        "type": "string",
+                        "maxLength": 1000
+                      },
+                      "restrictions": {
+                        "type": "string",
+                        "maxLength": 1000
+                      }
+                    },
+                    "required": [
+                      "status",
+                      "basis",
+                      "restrictions"
+                    ]
+                  },
+                  "externalAiProcessingAllowed": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/owner/case-versions/{versionId}/publish": {
+      "post": {
+        "summary": "Publish an approved version (gates: approval hash, rights, privacy)",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "versionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/owner/case-versions/{versionId}/retire": {
+      "post": {
+        "summary": "Retire a published version (no new selection)",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "versionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/owner/case-versions/{versionId}/critique": {
+      "post": {
+        "summary": "Run LLM clinical and rubric critics (if permitted)",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "versionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/owner/case-versions/{versionId}/author": {
+      "post": {
+        "summary": "Ask the LLM case author to draft stages, questions and rubric (drafts only)",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "versionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "ownerNotes": {
+                    "type": "string",
+                    "maxLength": 20000
+                  },
+                  "teachingText": {
+                    "default": "",
+                    "type": "string",
+                    "maxLength": 50000
+                  }
+                },
+                "required": [
+                  "ownerNotes"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/owner/case-versions/{versionId}/preview": {
+      "post": {
+        "summary": "Start an owner preview session for this version (excluded from learner progress and billing)",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "versionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/owner/cases/{caseId}/withdraw": {
+      "post": {
+        "summary": "Withdraw unsafe/unauthorized content: stop selection and revoke media access",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "caseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "minLength": 5,
+                    "maxLength": 1000
+                  }
+                },
+                "required": [
+                  "reason"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/owner/case-versions/{versionId}/assets/{assetId}/{frame}": {
+      "get": {
+        "summary": "Owner preview of any version's images (drafts included)",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "versionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "assetId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "frame",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/owner/case-attempts/{id}": {
+      "get": {
+        "summary": "Owner view of an attempt: transcript revisions, prompts, events, passes, versions",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/owner/case-attempts/{id}/resolve-element": {
+      "post": {
+        "summary": "Owner decision on a disputed/uncertain element (new assessment version)",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "elementId": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "demonstrated",
+                      "partially_demonstrated",
+                      "incorrect",
+                      "not_demonstrated",
+                      "not_assessable",
+                      "uncertain"
+                    ]
+                  },
+                  "rationale": {
+                    "type": "string",
+                    "minLength": 5,
+                    "maxLength": 2000
+                  },
+                  "globalLevel": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "unsafe",
+                          "below_expected",
+                          "meets_expected",
+                          "strong",
+                          "exceptional"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "elementId",
+                  "status",
+                  "rationale"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/owner/case-attempts/{id}/reassess": {
+      "post": {
+        "summary": "Queue a versioned reassessment (forced second pass)",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "reason"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/owner/appeals": {
+      "get": {
+        "summary": "Learner appeals",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/owner/appeals/{id}/resolve": {
+      "post": {
+        "summary": "Resolve an appeal (transcript revisions + versioned reassessment; history preserved)",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "decision": {
+                    "type": "string",
+                    "enum": [
+                      "upheld",
+                      "revised",
+                      "rejected"
+                    ]
+                  },
+                  "resolution": {
+                    "type": "string",
+                    "minLength": 5,
+                    "maxLength": 2000
+                  },
+                  "transcriptCorrections": {
+                    "default": [],
+                    "maxItems": 50,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "segmentId": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "correctedText": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 4000
+                        }
+                      },
+                      "required": [
+                        "segmentId",
+                        "correctedText"
+                      ]
+                    }
+                  },
+                  "reassess": {
+                    "default": false,
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "decision",
+                  "resolution"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/owner/content-requests": {
+      "get": {
+        "summary": "Explicit content requests (missing cases are requests, never fabricated cases)",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/owner/content-requests/{id}": {
+      "patch": {
+        "summary": "Update a content request",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "open",
+                      "in_progress",
+                      "fulfilled",
+                      "withdrawn"
+                    ]
+                  },
+                  "caseId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/owner/coverage": {
+      "get": {
+        "summary": "Published case coverage (fixtures excluded from production counts)",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/owner/metrics": {
+      "get": {
+        "summary": "Cost, latency, quality and exception metrics (last N days)",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/owner/config": {
+      "get": {
+        "summary": "Kill switches, assessment policy, demo cases, profiles",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/owner/config/switches": {
+      "put": {
+        "summary": "Kill switches for model roles, voice providers and cases",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "examinerLlmDisabled": {
+                    "type": "boolean"
+                  },
+                  "assessmentLlmDisabled": {
+                    "type": "boolean"
+                  },
+                  "serverTtsDisabled": {
+                    "type": "boolean"
+                  },
+                  "serverAsrDisabled": {
+                    "type": "boolean"
+                  },
+                  "disabledCaseIds": {
+                    "maxItems": 500,
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "examinerLlmDisabled",
+                  "assessmentLlmDisabled",
+                  "serverTtsDisabled",
+                  "serverAsrDisabled",
+                  "disabledCaseIds"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/owner/config/assessment-policy": {
+      "put": {
+        "summary": "Second-pass policy; reducing coverage requires explicit acknowledgement",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "secondPass": {
+                    "type": "string",
+                    "enum": [
+                      "always",
+                      "risk_based"
+                    ]
+                  },
+                  "randomSampleRate": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "shareExtractionWithB": {
+                    "type": "boolean"
+                  },
+                  "acknowledgeReducedCoverage": {
+                    "default": false,
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "secondPass",
+                  "randomSampleRate",
+                  "shareExtractionWithB"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/owner/config/demo-cases": {
+      "put": {
+        "summary": "Cases used for the free public demonstration",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "caseIds": {
+                    "maxItems": 5,
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "caseIds"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/owner/profiles/{versionId}/verification": {
+      "post": {
+        "summary": "Record owner verification of a profile as a NEW profile version (attempts stay frozen)",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "versionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "verified",
+                      "provisional"
+                    ]
+                  },
+                  "notes": {
+                    "type": "string",
+                    "minLength": 5,
+                    "maxLength": 2000
+                  },
+                  "unresolvedConflicts": {
+                    "default": [],
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "status",
+                  "notes"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/owner/users/{id}/adjust-minutes": {
+      "post": {
+        "summary": "Owner usage adjustment (e.g. verified platform failure)",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "minutes": {
+                    "type": "integer",
+                    "minimum": -1000,
+                    "maximum": 1000
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 5,
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "minutes",
+                  "reason"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/owner/jobs/dead": {
+      "get": {
+        "summary": "Dead-lettered background jobs (payload ids only; no clinical content)",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/owner/jobs/requeue-dead": {
+      "post": {
+        "summary": "Requeue dead-lettered jobs after fixing the cause",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "ids": {
+                    "minItems": 1,
+                    "maxItems": 100,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    }
+                  }
+                },
+                "required": [
+                  "ids"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    },
+    "/api/owner/sessions": {
+      "get": {
+        "summary": "Recent sessions with case attempts (for exception review)",
+        "tags": [
+          "owner"
+        ],
+        "x-auth": "owner",
+        "security": [
+          {
+            "cookieSession": []
+          },
+          {
+            "bearerSupabase": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request ({code, message, issues[]})"
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Forbidden (role, MFA or CSRF)"
+          },
+          "404": {
+            "description": "Not found (also returned for resources owned by another user)"
+          }
+        }
+      }
+    }
+  }
+}
