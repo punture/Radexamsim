@@ -23,3 +23,6 @@ __pycache__/
 evals/reports/.vitest-regression.json
 evals/owner-ratings/packets/*.key.json.bak
 evals/reports/*.json
+tools/ingestion/*.egg-info/
+tools/ingestion/**/__pycache__/
+tools/ingestion/.pytest_cache/
