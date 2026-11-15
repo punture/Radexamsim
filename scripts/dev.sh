@@ -9,6 +9,7 @@ export NODE_ENV="${NODE_ENV:-development}"
 if [ "$NODE_ENV" = "production" ]; then echo "scripts/dev.sh is for local development only" >&2; exit 1; fi
 # Without model keys, results come from the labelled development baseline assessor.
 export ALLOW_DEV_BASELINE_ASSESSOR="${ALLOW_DEV_BASELINE_ASSESSOR:-true}"
+export DATABASE_URL="${DATABASE_URL:-postgres://sim:sim_dev_password@127.0.0.1:5432/sim_dev}"
 bash scripts/dev-db.sh start
 pnpm db:migrate
 pnpm db:seed

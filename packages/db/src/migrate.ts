@@ -15,9 +15,10 @@ export async function runMigrations(url: string): Promise<void> {
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
-  const url = process.env.DATABASE_URL;
+  // Outside production, default to the local development database (same default as the API).
+  const url = process.env.DATABASE_URL ?? (process.env.NODE_ENV === "production" ? undefined : "postgres://sim:sim_dev_password@127.0.0.1:5432/sim_dev");
   if (!url) {
-    console.error("DATABASE_URL is required");
+    console.error("DATABASE_URL is required in production");
     process.exit(1);
   }
   runMigrations(url)
