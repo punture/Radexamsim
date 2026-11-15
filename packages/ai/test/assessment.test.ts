@@ -273,3 +273,17 @@ describe("played portion of examiner speech", () => {
     expect(parseElevenLabsAlignment({ chars: ["a"], charStartTimesMs: [0], charDurationsMs: [80] })).toEqual({ chars: ["a"], startMs: [0], endMs: [80] });
   });
 });
+
+describe("calibration guards", () => {
+  it("never awards the top rating from the deterministic baseline, and only reports uncertainty when an element is uncertain", async () => {
+    const t = "There is no intracranial hemorrhage. Early hypodensity in the left MCA territory with a hyperdense left MCA. Leading diagnosis acute left MCA infarct. I would get an urgent CT angiogram. This is an emergency; I would call the stroke team directly.";
+    const s = seg(t, 10_000);
+    const r = await runCaseAssessment(attempt([s], { renders: [{ assetId: "ct-noncon", status: "rendered", atMs: 1500 }] }), { extractor: null, assessorA: null, assessorB: null, adjudicator: null, policy: DEFAULT_ASSESSMENT_POLICY, allowBaseline: true });
+    if (!r.available) throw new Error("expected result");
+    expect(r.final.globalRating.level).not.toBe("exceptional");
+    expect(r.final.domainRatings.every((d) => d.level !== "exceptional")).toBe(true);
+    const d = composeCaseDebrief({ assessmentId: "assess-00000002", assessment: r.final, caseVersion: stroke, profile: attempt([]).profile, caseLabel: "Case 1 of 1", segments: [s], caseStartedAtMs: 0 });
+    const anyUncertain = r.final.elementResults.some((e) => e.status === "uncertain");
+    expect(/could not be judged confidently/.test(d.overall.uncertaintyStatement ?? "")).toBe(anyUncertain);
+  });
+});

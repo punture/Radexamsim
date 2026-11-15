@@ -19,3 +19,4 @@ recordings/
 tools/ingestion/.venv/
 tools/ingestion/out/
 __pycache__/
+.next-e2e

@@ -31,7 +31,8 @@ export function deterministicLevel(js: ValidatedJudgment[], flags: UnsafeFlag[])
   }
   if (den === 0) return null;
   const r = num / den;
-  if (r >= 0.98 && js.every((j) => j.status === "not_assessable" || j.promptingLevel === "spontaneous" || j.promptingLevel === null)) return "exceptional";
+  // The deterministic estimate never awards "exceptional": that requires a holistic judgment
+  // of efficiency and synthesis against the owner's anchors, which counting cannot provide.
   if (r >= 0.85) return "strong";
   if (r >= 0.65) return "meets_expected";
   return "below_expected";

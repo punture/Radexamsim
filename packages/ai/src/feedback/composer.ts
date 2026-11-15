@@ -166,7 +166,7 @@ export function composeCaseDebrief(input: ComposeInput): CaseDebrief {
         a.assessorKind === "dev_baseline" ? "This is a development baseline result, not a clinical assessment." : null,
         a.globalRating.withheldReason,
         a.disputedElementIds.length ? `${a.disputedElementIds.length} element(s) are awaiting owner review because independent assessments disagreed.` : null,
-        a.uncertaintyReasons.length && !a.disputedElementIds.length ? "Some elements could not be judged confidently; they are marked uncertain." : null,
+        a.elementResults.some((r) => r.status === "uncertain") && !a.disputedElementIds.length ? "Some elements could not be judged confidently; they are marked uncertain." : null,
       ]
         .filter(Boolean)
         .join(" ")
