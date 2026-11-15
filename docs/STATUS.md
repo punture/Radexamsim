@@ -34,8 +34,8 @@ The product must not be offered to paying clinical users in this state.
 | Live session controller: WebSocket tickets, deterministic examiner, reveals, unavailable replies, interruption accounting, duplicate commands, reconnect, render failure, consent gates | Implemented, integration-tested | `apps/api/test/live.test.ts` |
 | Assessment pipeline: extraction, independent A/B, deterministic post-processing, adjudication, caps, withholding, owner items, ASR-confidence rules | Implemented, tested with scripted models | `packages/ai/test/assessment.test.ts` |
 | Worker: assessment, debrief, learning plan, authoring, critique, privacy jobs | Implemented, integration-tested (dev baseline and scripted providers) | `apps/worker/test/*.test.ts` |
-| Owner console (API and UI): import, structured editor, critics, hash-bound approval, clearances, publish, versions, retire, withdraw, attempts, appeals, coverage, metrics, configuration | Implemented; API integration-tested; UI typechecked and built, not browser-tested | `apps/worker/test/owner.test.ts` |
-| Learner web app and public site | Implemented; vertical slice browser-tested | `apps/web/e2e/vertical-slice.spec.ts` (2 Playwright tests) |
+| Owner console (API and UI): import, structured editor, critics, hash-bound approval, clearances, publish, versions, retire, withdraw, attempts, appeals, coverage, metrics, configuration | Implemented; API integration-tested; UI browser smoke-tested (MFA sign-in, readable review package with image previews, coverage, configuration, metrics, learner lockout) | `apps/worker/test/owner.test.ts`, `apps/web/e2e/owner-console.spec.ts` |
+| Learner web app and public site | Implemented; vertical slice browser-tested | `apps/web/e2e/vertical-slice.spec.ts` |
 | Billing: Stripe event processing, idempotency, ledger reserve/reconcile, entitlements, demo allowance | Implemented, unit-tested with locally signed payloads | `packages/billing/test/billing.test.ts` |
 | Evaluation harness: 25 response patterns, variants, examiner simulation, 16-scenario regression matrix, locked final split, blind owner ratings, report | Implemented, tested | `evals/test/evals.test.ts`, `evals/reports/latest.md` |
 | Client-bundle leak scan | Implemented; passes | `pnpm check:leaks` |
@@ -50,7 +50,7 @@ The product must not be offered to paying clinical users in this state.
 | Approved clinical cases | **Blocked on owner content**: 0 approved; 10 content-request slots open | Owner console → Coverage |
 | Deployment | **Blocked on owner decision and authorization** | `docs/runbooks/DEPLOYMENT.md` |
 
-Automated test totals at this commit: **107 vitest tests in 10 files**, **2 Playwright tests**, all passing. Typecheck and the production web build pass.
+Automated test totals at this commit: **108 vitest tests in 10 files**, **4 Playwright tests**, all passing. Typecheck and the production web build pass.
 
 ## Measured results (fixtures, development configuration)
 
@@ -70,7 +70,7 @@ Automated test totals at this commit: **107 vitest tests in 10 files**, **2 Play
 - Exam profiles are provisional: official pages could not be fetched, so the settings come from search snippets.
 - Privacy and terms pages are drafts, pending owner and legal review.
 - The learning plan has no endpoint for item state updates. Usage totals are lifetime, not per billing period. Data-export expiry is not shown to learners.
-- Owner console pages are not covered by browser tests.
+- Owner console browser coverage is a smoke test. The approve/publish/withdraw actions are covered at the API level, not by clicking through the UI.
 
 ## Real dependencies (what unblocks the next steps)
 
