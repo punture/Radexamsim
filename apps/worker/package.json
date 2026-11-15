@@ -1,0 +1,29 @@
+{
+  "name": "@sim/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --clear-screen=false src/main.ts",
+    "start": "node dist/main.js",
+    "build": "esbuild src/main.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist/main.js --packages=external",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@sim/ai": "workspace:*",
+    "@sim/billing": "workspace:*",
+    "@sim/clinical-content": "workspace:*",
+    "@sim/contracts": "workspace:*",
+    "@sim/db": "workspace:*",
+    "@sim/exam-engine": "workspace:*",
+    "@sim/fixtures": "workspace:*",
+    "@sim/storage": "workspace:*",
+    "pg": "^8.23.1",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@sim/api": "workspace:*",
+    "@types/pg": "^8.23.1",
+    "esbuild": "^0.28.2"
+  }
+}

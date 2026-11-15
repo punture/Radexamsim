@@ -1,0 +1,1 @@
+ALTER TABLE "learning_plans" ADD COLUMN "assignments" jsonb DEFAULT '{}'::jsonb NOT NULL;

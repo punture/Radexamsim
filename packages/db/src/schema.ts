@@ -473,6 +473,8 @@ export const learningPlans = pgTable("learning_plans", {
   id: uuid().primaryKey().defaultRandom(),
   userId: uuid().notNull().references(() => users.id),
   payload: jsonb().$type<LearningPlan>().notNull(),
+  /** Server-only map of opaque assignment tokens to case ids (never sent to the browser). */
+  assignments: jsonb().$type<Record<string, string>>().notNull().default({}),
   createdAt: createdAt(),
   supersededAt: ts(),
 });
