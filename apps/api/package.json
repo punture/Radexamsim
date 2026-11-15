@@ -1,0 +1,36 @@
+{
+  "name": "@sim/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --clear-screen=false src/main.ts",
+    "start": "node dist/main.js",
+    "build": "esbuild src/main.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist/main.js --packages=external",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "seed": "tsx src/seed.ts",
+    "openapi": "tsx src/openapi-cli.ts",
+    "totp": "tsx src/totp-cli.ts"
+  },
+  "dependencies": {
+    "@fastify/cookie": "^11.1.5",
+    "@fastify/rate-limit": "^11.2.2",
+    "@fastify/websocket": "^11.3.7",
+    "@sim/ai": "workspace:*",
+    "@sim/billing": "workspace:*",
+    "@sim/clinical-content": "workspace:*",
+    "@sim/contracts": "workspace:*",
+    "@sim/db": "workspace:*",
+    "@sim/exam-engine": "workspace:*",
+    "@sim/fixtures": "workspace:*",
+    "@sim/storage": "workspace:*",
+    "fastify": "^5.12.8",
+    "jose": "^6.2.17",
+    "ws": "^8.23.0",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.18.2",
+    "esbuild": "^0.28.2"
+  }
+}

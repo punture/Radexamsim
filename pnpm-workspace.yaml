@@ -1,11 +1,13 @@
 packages:
-  - "apps/*"
-  - "packages/*"
-  - "evals"
-  - "fixtures"
-onlyBuiltDependencies:
-  - esbuild
-  - "@resvg/resvg-js"
-  - sharp
+  - apps/*
+  - packages/*
+  - evals
+  - fixtures
+
 catalog:
   zod: ^4.6.7
+
+onlyBuiltDependencies:
+  - esbuild
+  - '@resvg/resvg-js'
+  - sharp
