@@ -300,6 +300,23 @@ excluded. Otherwise it is `quarantine`. Findings carry into the package as follo
 - Source-only findings already resolved by processing (for example DICOM PHI attributes,
   which were removed) are replaced by the de-identification report.
 
+## Case-per-folder archives (intake helper)
+
+When the source has one folder per case (for example key-image exports: case folder, then
+export folder, then study folder, then images), `scripts/intake_by_folder.py` runs quarantine,
+inventory and extract, then builds one draft package per case folder. It does this by merging
+the families whose sources live in that folder; families are never split.
+
+```bash
+tools/ingestion/.venv/bin/python -I tools/ingestion/scripts/intake_by_folder.py \
+    --src ~/Downloads/intake.zip --batch quarantine/box-batch-1
+```
+
+Folder labels become the draft's internal title and the owner's provisional diagnosis label,
+with digit runs of 5 or more removed (possible record numbers). Output shows only case numbers,
+labels, image counts and finding counts. Packages with high findings stay `quarantine`, and the
+owner console refuses to import them until the findings are resolved.
+
 ## Supported formats
 
 | input | handling |
