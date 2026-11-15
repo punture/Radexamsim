@@ -102,16 +102,17 @@ export async function assessCaseAttempt(deps: WorkerDeps, payload: { caseAttempt
 
   if (!result.available) {
     if (providerFailure) throw new RetryableJobError(`assessment unavailable: ${result.reason}`);
-    await maybeEnqueueDebrief(db, data.sessionId, data.caseAttemptId);
+    await maybeEnqueueDebrief(db, data.sessionId, `${data.caseAttemptId}:unavailable`);
     return { available: false, unavailable: result.reason };
   }
-  await maybeEnqueueDebrief(db, data.sessionId, data.caseAttemptId);
+  await maybeEnqueueDebrief(db, data.sessionId, stored!.id);
   return { assessmentId: stored!.id, version: stored!.version, available: true };
 }
 
 /** When every started case of a finalizing session is settled, build the debrief. */
 export async function maybeEnqueueDebrief(db: Db, sessionId: string, triggeredBy: string): Promise<void> {
   const [s] = await db.select().from(stationSessions).where(eq(stationSessions.id, sessionId));
-  if (!s || (s.status !== "finalizing" && s.mode !== "practice")) return;
+  // Completed sessions get a new debrief VERSION after reassessment (appeal/owner decision).
+  if (!s || (s.status !== "finalizing" && s.status !== "complete" && s.mode !== "practice")) return;
   await enqueue(db, { kind: "build_session_debrief", payload: { sessionId }, dedupeKey: `debrief:${sessionId}:after:${triggeredBy}`, maxAttempts: 10 });
 }

@@ -8,6 +8,9 @@ import { CaseVersion, zodIssues, type ContractIssue } from "@sim/contracts";
 
 export type CaseIssue = ContractIssue & { severity: "error" | "warning" };
 
+/** Marker the importer uses for content the owner (or the LLM author) must supply. */
+export const DRAFT_PLACEHOLDER = "[DRAFT PLACEHOLDER]";
+
 export type CaseValidationResult =
   | { ok: true; value: CaseVersion; warnings: CaseIssue[] }
   | { ok: false; issues: CaseIssue[] };
@@ -356,6 +359,17 @@ export function validateCaseVersion(input: unknown): CaseValidationResult {
     });
     if (visible.includes(canary)) err("clinicalTruth.leakCanary", "leak canary appears in candidate/examiner-visible text");
   }
+
+  // Draft placeholders inserted by the importer must be replaced before review/approval.
+  const placeholderPaths: string[] = [];
+  const walk = (v: unknown, path: string) => {
+    if (typeof v === "string") {
+      if (v.includes(DRAFT_PLACEHOLDER)) placeholderPaths.push(path);
+    } else if (Array.isArray(v)) v.forEach((x, i) => walk(x, `${path}[${i}]`));
+    else if (v && typeof v === "object") for (const [k, x] of Object.entries(v)) walk(x, path ? `${path}.${k}` : k);
+  };
+  walk(cv, "");
+  for (const p of placeholderPaths.slice(0, 50)) err(p, "draft placeholder must be completed before review", "draft_placeholder");
 
   const errors = issues.filter((i) => i.severity === "error");
   if (errors.length > 0) return { ok: false, issues };
