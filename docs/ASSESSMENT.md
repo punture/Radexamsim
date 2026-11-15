@@ -100,7 +100,7 @@ An optional LLM feedback writer may reword the composer's text. Output that adds
 
 ## 9. Learning plans
 
-`packages/ai/src/learning/plan.ts` selects the next practice deterministically from weak skills, with exposure separated from first-attempt evidence. Plan items carry **server-only assignment tokens** (`as_` plus 24 hex characters), so the browser never learns which case will be served. Progress views show counts with denominators. They separate exam from practice, first exposure from repeat exposure, and assisted from unassisted credit, and they report development-fixture results separately.
+`packages/ai/src/learning/plan.ts` selects the next practice deterministically from weak skills, with exposure separated from first-attempt evidence. The schedule is a worked example now, a focused verbal exercise after 1 day, a related unseen case after about 3 days, and a mixed timed reassessment after about 7 days. Learners can change the pace (compressed ×0.5, standard, relaxed ×2) and mark steps done or skipped. Both are stored separately; the generated plan is never edited. Plan items carry **server-only assignment tokens** (`as_` plus 24 hex characters), so the browser never learns which case will be served. Progress views show counts with denominators. They separate exam from practice, first exposure from repeat exposure, and assisted from unassisted credit, and they report development-fixture results separately.
 
 ## 10. Board-specific practice display
 

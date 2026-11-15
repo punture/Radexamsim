@@ -54,6 +54,33 @@ function ItemLink({ item }: { item: PlanItem }) {
 export function LearningPlanView() {
   const router = useRouter();
   const [plan, setPlan] = useState<LearningPlan | null | undefined>(undefined);
+  const [pace, setPace] = useState<"compressed" | "standard" | "relaxed">("standard");
+  const [updateError, setUpdateError] = useState<string | null>(null);
+  const reloadPlan = () =>
+    api<{ plan: LearningPlan | null; pace?: "compressed" | "standard" | "relaxed" }>("/api/learning/plan")
+      .then((r) => {
+        setPlan(r.plan ?? null);
+        if (r.pace) setPace(r.pace);
+      })
+      .catch((e) => setUpdateError(errorText(e, "Your learning plan could not be refreshed.")));
+  const changePace = async (next: "compressed" | "standard" | "relaxed") => {
+    setUpdateError(null);
+    try {
+      await api("/api/learning/preferences", { method: "PUT", body: { pace: next } });
+      await reloadPlan();
+    } catch (e) {
+      setUpdateError(errorText(e, "Your pace could not be saved."));
+    }
+  };
+  const setItemStatus = async (itemId: string, status: "started" | "completed" | "skipped" | "suggested") => {
+    setUpdateError(null);
+    try {
+      await api(`/api/learning/plan/items/${encodeURIComponent(itemId)}/status`, { body: { status } });
+      await reloadPlan();
+    } catch (e) {
+      setUpdateError(errorText(e, "This step could not be updated."));
+    }
+  };
   const [loadError, setLoadError] = useState<string | null>(null);
   const [profiles, setProfiles] = useState<PublicProfile[]>([]);
   const [profileId, setProfileId] = useState("");
@@ -65,8 +92,12 @@ export function LearningPlanView() {
 
   useEffect(() => {
     let alive = true;
-    api<{ plan: LearningPlan | null }>("/api/learning/plan")
-      .then((r) => alive && setPlan(r.plan ?? null))
+    api<{ plan: LearningPlan | null; pace?: "compressed" | "standard" | "relaxed" }>("/api/learning/plan")
+      .then((r) => {
+        if (!alive) return;
+        setPlan(r.plan ?? null);
+        if (r.pace) setPace(r.pace);
+      })
       .catch((e) => {
         if (!alive) return;
         setLoadError(errorText(e, "Your learning plan could not be loaded."));
@@ -186,7 +217,18 @@ export function LearningPlanView() {
           )}
 
           <section className="stack" aria-labelledby="steps-title">
-            <h2 id="steps-title" style={{ margin: 0 }}>Your next steps</h2>
+            <div className="row-between">
+              <h2 id="steps-title" style={{ margin: 0 }}>Your next steps</h2>
+              <label className="row" style={{ gap: 6 }}>
+                Pace
+                <select aria-label="Plan pace" value={pace} onChange={(e) => void changePace(e.target.value as typeof pace)}>
+                  <option value="compressed">Compressed (about half the spacing)</option>
+                  <option value="standard">Standard</option>
+                  <option value="relaxed">Relaxed (about double the spacing)</option>
+                </select>
+              </label>
+            </div>
+            {updateError && <Alert kind="danger">{updateError}</Alert>}
             <ol className="stack" role="list" style={{ listStyle: "none", padding: 0, margin: 0 }}>
               {[...plan.items].sort((a, b) => a.order - b.order).map((item) => {
                 const st = STATUS[item.status];
@@ -214,6 +256,9 @@ export function LearningPlanView() {
                       ) : (
                         <ItemLink item={item} />
                       )}
+                      {item.status !== "completed" && <button type="button" className="btn btn-sm" onClick={() => void setItemStatus(item.id, "completed")}>Mark done</button>}
+                      {item.status !== "skipped" && item.status !== "completed" && <button type="button" className="btn btn-sm" onClick={() => void setItemStatus(item.id, "skipped")}>Skip</button>}
+                      {(item.status === "completed" || item.status === "skipped") && <button type="button" className="btn btn-sm" onClick={() => void setItemStatus(item.id, "suggested")}>Undo</button>}
                     </div>
                     {startError?.itemId === item.id && (
                       <Alert kind="danger" title="Could not start">

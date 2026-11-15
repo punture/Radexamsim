@@ -72,6 +72,20 @@ describe("worker: assessment → debrief → learning plan", () => {
     const [plan] = await env.db.select().from(learningPlans).where(eq(learningPlans.userId, env.learnerId));
     expect(plan).toBeTruthy();
     expect(JSON.stringify(plan!.payload)).not.toMatch(/fx-|infarct|metasta/i); // no case ids or diagnoses
+
+    // Timing is adjustable and progress is recorded without editing the generated plan.
+    const before = (await http.req("GET", "/api/learning/plan")).json;
+    expect(before.pace).toBe("standard");
+    const spaced = before.plan.items.find((i: { suggestedAfterDays: number }) => i.suggestedAfterDays > 1);
+    expect((await http.req("PUT", "/api/learning/preferences", { pace: "relaxed" })).status).toBe(200);
+    const relaxed = (await http.req("GET", "/api/learning/plan")).json;
+    expect(relaxed.plan.items.find((i: { id: string }) => i.id === spaced.id).suggestedAfterDays).toBe(spaced.suggestedAfterDays * 2);
+    const first = before.plan.items[0];
+    expect((await http.req("POST", `/api/learning/plan/items/${first.id}/status`, { status: "completed" })).status).toBe(200);
+    expect((await http.req("GET", "/api/learning/plan")).json.plan.items[0].status).toBe("completed");
+    expect((await http.req("POST", "/api/learning/plan/items/not-an-item/status", { status: "completed" })).status).toBe(404);
+    const [stored] = await env.db.select().from(learningPlans).where(eq(learningPlans.id, plan!.id));
+    expect(stored!.payload).toEqual(plan!.payload);
   }, 60_000);
 
   it("retries on provider failure, never fabricates a result, and settles the debrief as unavailable", async () => {

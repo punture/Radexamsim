@@ -29,6 +29,13 @@
       "when": 1794712201990,
       "tag": "0003_attempt_version_binding",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794714042439,
+      "tag": "0004_plan_pace_and_item_states",
+      "breakpoints": true
     }
   ]
 }

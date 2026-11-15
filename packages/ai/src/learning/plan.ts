@@ -154,3 +154,24 @@ export function buildLearningPlan(input: PlanInput): LearningPlan {
     generatedBy: "deterministic",
   };
 }
+
+/** Learner-adjustable plan timing (spec §12). Factors scale the suggested spacing between items. */
+export type PlanPace = "compressed" | "standard" | "relaxed";
+export const PLAN_PACE_FACTORS: Record<PlanPace, number> = { compressed: 0.5, standard: 1, relaxed: 2 };
+export type PlanItemStatus = LearningPlan["items"][number]["status"];
+
+/**
+ * Applies the learner's pace and item progress to a stored plan for display. The stored plan
+ * is never edited: generation stays deterministic and auditable.
+ */
+export function applyPlanPreferences(plan: LearningPlan, pace: PlanPace, itemStates: Record<string, PlanItemStatus>): LearningPlan {
+  const f = PLAN_PACE_FACTORS[pace];
+  return {
+    ...plan,
+    items: plan.items.map((it) => ({
+      ...it,
+      suggestedAfterDays: it.suggestedAfterDays === 0 ? 0 : Math.max(1, Math.round(it.suggestedAfterDays * f)),
+      status: itemStates[it.id] ?? it.status,
+    })),
+  };
+}

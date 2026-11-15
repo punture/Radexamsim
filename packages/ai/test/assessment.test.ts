@@ -304,3 +304,28 @@ describe("calibration guards", () => {
     expect(/could not be judged confidently/.test(d.overall.uncertaintyStatement ?? "")).toBe(anyUncertain);
   });
 });
+
+describe("learning plan timing preferences", () => {
+  it("scales spacing by the learner's pace, keeps 'now' items at zero, and overlays progress", async () => {
+    const { applyPlanPreferences } = await import("../src");
+    const plan = {
+      id: "plan-00000001",
+      userId: "user-00000001",
+      createdAt: "2026-11-15T00:00:00.000Z",
+      basis: "b",
+      focusSkills: [],
+      skillSummaries: [],
+      generatedBy: "deterministic" as const,
+      items: [
+        { id: "i1", order: 1, kind: "worked_example" as const, title: "t", description: "d", targetSkills: [], assignmentToken: null, suggestedAfterDays: 0, status: "suggested" as const },
+        { id: "i2", order: 2, kind: "focused_verbal_exercise" as const, title: "t", description: "d", targetSkills: [], assignmentToken: null, suggestedAfterDays: 1, status: "suggested" as const },
+        { id: "i3", order: 3, kind: "mixed_timed_reassessment" as const, title: "t", description: "d", targetSkills: [], assignmentToken: null, suggestedAfterDays: 7, status: "suggested" as const },
+      ],
+    };
+    const relaxed = applyPlanPreferences(plan, "relaxed", { i2: "completed" });
+    expect(relaxed.items.map((i) => i.suggestedAfterDays)).toEqual([0, 2, 14]);
+    expect(relaxed.items[1]!.status).toBe("completed");
+    expect(applyPlanPreferences(plan, "compressed", {}).items.map((i) => i.suggestedAfterDays)).toEqual([0, 1, 4]);
+    expect(plan.items[2]!.suggestedAfterDays).toBe(7); // stored plan untouched
+  });
+});

@@ -1,7 +1,8 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { SKILL_LABELS, type SkillId } from "@sim/contracts";
-import { and, caseAttempts, caseVersions, desc, eq, isNull, learningPlans, skillObservations } from "@sim/db";
+import { and, caseAttempts, caseVersions, desc, eq, isNull, learningPlans, skillObservations, users } from "@sim/db";
+import { applyPlanPreferences } from "@sim/ai";
 import type { Deps } from "../deps";
 import { HttpError, notFound, route } from "../http";
 import { createStationSession } from "../services/sessions";
@@ -22,7 +23,38 @@ export function learningRoutes(app: FastifyInstance, deps: Deps): void {
     auth: "user",
     handler: async ({ auth }) => {
       const [row] = await db.select().from(learningPlans).where(and(eq(learningPlans.userId, auth!.userId), isNull(learningPlans.supersededAt))).orderBy(desc(learningPlans.createdAt)).limit(1);
-      return { plan: row?.payload ?? null };
+      const [u] = await db.select({ pace: users.planPace }).from(users).where(eq(users.id, auth!.userId));
+      const pace = u?.pace ?? "standard";
+      return { plan: row ? applyPlanPreferences(row.payload, pace, row.itemStates) : null, pace };
+    },
+  });
+
+  route(app, {
+    method: "PUT",
+    url: "/api/learning/preferences",
+    summary: "Set the learner's plan pace (spacing between plan items)",
+    tags: ["learning"],
+    auth: "user",
+    body: z.object({ pace: z.enum(["compressed", "standard", "relaxed"]) }),
+    handler: async ({ auth, body }) => {
+      await db.update(users).set({ planPace: body.pace }).where(eq(users.id, auth!.userId));
+      return { pace: body.pace };
+    },
+  });
+
+  route(app, {
+    method: "POST",
+    url: "/api/learning/plan/items/:itemId/status",
+    summary: "Record progress on a plan item (the generated plan itself is not edited)",
+    tags: ["learning"],
+    auth: "user",
+    params: z.object({ itemId: z.string().min(1).max(80) }),
+    body: z.object({ status: z.enum(["suggested", "started", "completed", "skipped"]) }),
+    handler: async ({ auth, params, body }) => {
+      const [row] = await db.select().from(learningPlans).where(and(eq(learningPlans.userId, auth!.userId), isNull(learningPlans.supersededAt))).orderBy(desc(learningPlans.createdAt)).limit(1);
+      if (!row || !row.payload.items.some((it) => it.id === params.itemId)) throw notFound("plan item");
+      await db.update(learningPlans).set({ itemStates: { ...row.itemStates, [params.itemId]: body.status } }).where(eq(learningPlans.id, row.id));
+      return { itemId: params.itemId, status: body.status };
     },
   });
 

@@ -50,6 +50,8 @@ export const users = pgTable(
     totpSecret: text(),
     totpEnabled: boolean().notNull().default(false),
     stripeCustomerId: text(),
+    /** Learner-chosen spacing for learning-plan timing (spec §12: timing is adjustable). */
+    planPace: text().$type<"compressed" | "standard" | "relaxed">().notNull().default("standard"),
     createdAt: createdAt(),
     deletedAt: ts(),
   },
@@ -475,6 +477,8 @@ export const learningPlans = pgTable("learning_plans", {
   payload: jsonb().$type<LearningPlan>().notNull(),
   /** Server-only map of opaque assignment tokens to case ids (never sent to the browser). */
   assignments: jsonb().$type<Record<string, string>>().notNull().default({}),
+  /** Learner progress on plan items (item id → status); the generated plan itself is never edited. */
+  itemStates: jsonb().$type<Record<string, "suggested" | "started" | "completed" | "skipped">>().notNull().default({}),
   createdAt: createdAt(),
   supersededAt: ts(),
 });
