@@ -17,9 +17,15 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
       <header className="site-header">
         <div className="container">
           <Link href="/" className="brand"><span className="brand-mark" aria-hidden>N</span>{BRAND}</Link>
-          <nav className="nav" aria-label="Main">
+          <nav className="nav nav-desktop" aria-label="Main">
             {NAV.map(([href, label]) => <Link key={href} href={href}>{label}</Link>)}
           </nav>
+          <details className="nav-menu">
+            <summary>Menu</summary>
+            <nav aria-label="Main (compact)">
+              {NAV.map(([href, label]) => <Link key={href} href={href}>{label}</Link>)}
+            </nav>
+          </details>
           <div className="row">
             <Link className="btn btn-sm" href="/sign-in">Sign in</Link>
             <Link className="btn btn-sm btn-primary" href="/sign-up">Start free demo</Link>

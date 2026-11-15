@@ -243,3 +243,16 @@ blockquote.evidence { margin: 6px 0; padding: 8px 12px; border-left: 3px solid v
   .table-stack th, .table-stack td { border-bottom: 0; padding: 4px 0; }
   .table-stack td[data-label]::before { content: attr(data-label); display: block; font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); }
 }
+
+/* Compact public navigation on narrow screens (no JavaScript: <details>). */
+.nav-menu { display: none; position: relative; }
+.nav-menu > summary { list-style: none; cursor: pointer; padding: 6px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; color: var(--text); background: var(--surface); }
+.nav-menu > summary::-webkit-details-marker { display: none; }
+.nav-menu > nav { display: none; }
+.nav-menu[open] > nav { display: flex; flex-direction: column; position: absolute; right: 0; top: calc(100% + 6px); max-width: calc(100vw - 32px); min-width: 210px; padding: 6px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 10px 28px rgba(15, 23, 42, 0.14); z-index: 30; }
+.nav-menu > nav a { padding: 10px 12px; border-radius: 8px; color: var(--text); text-decoration: none; }
+.nav-menu > nav a:hover { background: var(--surface-2); }
+@media (max-width: 720px) {
+  .nav-desktop { display: none; }
+  .nav-menu { display: block; }
+}
