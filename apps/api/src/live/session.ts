@@ -1360,6 +1360,26 @@ export class LiveSession {
     await this.chain;
   }
 
+  /** Stops timers and provider streams without ending the session (process shutdown). */
+  halt(): void {
+    this.clearTurnTimers();
+    for (const t of [this.graceTimer, this.maxPauseTimer]) if (t) clearTimeout(t);
+    this.graceTimer = null;
+    this.maxPauseTimer = null;
+    if (this.tick) clearInterval(this.tick);
+    this.tick = null;
+    for (const p of this.pendingViewer.values()) clearTimeout(p.timer);
+    if (this.speaking?.safety) clearTimeout(this.speaking.safety);
+    this.asr?.close();
+    this.asr = null;
+    try {
+      this.socket?.close(1012, "service restart");
+    } catch {
+      /* ignore */
+    }
+    this.socket = null;
+  }
+
   get isEnded(): boolean {
     return this.ended;
   }

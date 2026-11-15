@@ -15,6 +15,8 @@ export type TestEnv = {
   db: Db;
   owner: { id: string; totp: string };
   learnerId: string;
+  /** Simulates a process restart (deploy or crash recovery) on the same database. Returns recovered session count. */
+  restart: () => Promise<number>;
   close: () => Promise<void>;
 };
 
@@ -32,24 +34,36 @@ export async function startTestEnv(over: { llm?: LlmProvider | null; env?: Recor
   const db = createDb(t.url);
   const deps = buildDeps(config, { db, llm: over.llm ?? null, asr: null, tts: null, speech: { asr: "dev_injection_only", tts: "browser" }, ...(over.now ? { now: over.now } : {}) });
   const seeded = await seedDev(db, { ...DEFAULT_SEED, encryptionKey: config.AUTH_ENCRYPTION_KEY });
+  const listen = async (s: BuiltServer) => {
+    await s.app.listen({ port: 0, host: "127.0.0.1" });
+    const addr = s.app.server.address();
+    return `http://127.0.0.1:${typeof addr === "object" && addr ? addr.port : 0}`;
+  };
   const server = await buildServer(deps);
-  await server.app.listen({ port: 0, host: "127.0.0.1" });
-  const addr = server.app.server.address();
-  const port = typeof addr === "object" && addr ? addr.port : 0;
-  return {
-    base: `http://127.0.0.1:${port}`,
+  const env: TestEnv = {
+    base: await listen(server),
     deps,
     server,
     db,
     owner: { id: seeded.ownerId, totp: seeded.ownerTotpSecret },
     learnerId: seeded.learnerId,
+    restart: async () => {
+      await env.server.live.shutdown();
+      await env.server.app.close();
+      const next = await buildServer(deps);
+      const recovered = await next.live.recoverOrphans();
+      env.server = next;
+      env.base = await listen(next);
+      return recovered;
+    },
     close: async () => {
-      await server.live.shutdown();
-      await server.app.close();
+      await env.server.live.shutdown();
+      await env.server.app.close();
       await db.$client.end();
       await t.drop();
     },
   };
+  return env;
 }
 
 /** Minimal cookie-aware HTTP client. */

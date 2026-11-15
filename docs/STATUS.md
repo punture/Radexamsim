@@ -31,7 +31,7 @@ The product must not be offered to paying clinical users in this state.
 | Contracts, exam engine (clock, stages, examiner menu/validation/fallback, opportunities, prompting, form assembly, projections) | Implemented, unit-tested | `packages/exam-engine/test/engine.test.ts` |
 | Case validation, hashing, change classification, publication gate | Implemented, unit-tested | `packages/clinical-content/test/validate.test.ts` |
 | Database: migrations, RLS, append-only events, immutable ledger/transcripts/assessments, attempt-to-version binding, durable queue with dead letters | Implemented, tested against PostgreSQL 16 | `packages/db/test/db.test.ts` |
-| Live session controller: WebSocket tickets, deterministic examiner, reveals, unavailable replies, interruption accounting, duplicate commands, reconnect, render failure, consent gates | Implemented, integration-tested | `apps/api/test/live.test.ts` |
+| Live session controller: WebSocket tickets, deterministic examiner, reveals, unavailable replies, interruption accounting, duplicate commands, reconnect, restart recovery, render failure, consent gates | Implemented, integration-tested | `apps/api/test/live.test.ts` |
 | Assessment pipeline: extraction, independent A/B, deterministic post-processing, adjudication, caps, withholding, owner items, ASR-confidence rules | Implemented, tested with scripted models | `packages/ai/test/assessment.test.ts` |
 | Worker: assessment, debrief, learning plan, authoring, critique, privacy jobs | Implemented, integration-tested (dev baseline and scripted providers) | `apps/worker/test/*.test.ts` |
 | Owner console (API and UI): import, structured editor, critics, hash-bound approval, clearances, publish, versions, retire, withdraw, attempts, appeals, coverage, metrics, configuration | Implemented; API integration-tested; UI browser smoke-tested (MFA sign-in, readable review package with image previews, coverage, configuration, metrics, learner lockout) | `apps/worker/test/owner.test.ts`, `apps/web/e2e/owner-console.spec.ts` |
@@ -50,7 +50,7 @@ The product must not be offered to paying clinical users in this state.
 | Approved clinical cases | **Blocked on owner content**: 0 approved; 10 content-request slots open | Owner console → Coverage |
 | Deployment | **Blocked on owner decision and authorization** | `docs/runbooks/DEPLOYMENT.md` |
 
-Automated test totals at this commit: **108 vitest tests in 10 files**, **4 Playwright tests**, all passing. Typecheck and the production web build pass.
+Automated test totals at this commit: **109 vitest tests in 10 files**, **4 Playwright tests**, all passing. Typecheck and the production web build pass.
 
 ## Measured results (fixtures, development configuration)
 
@@ -66,10 +66,10 @@ Automated test totals at this commit: **108 vitest tests in 10 files**, **4 Play
 
 ## Known limitations
 
-- Live sessions are held in API memory, so horizontal scaling needs sticky routing. Reconnect after an API restart rebuilds from the database but has no automated test.
+- Live sessions are held in API memory, so horizontal scaling needs sticky routing. Restart recovery (platform pause, then resume on reconnect) is tested.
 - Exam profiles are provisional: official pages could not be fetched, so the settings come from search snippets.
 - Privacy and terms pages are drafts, pending owner and legal review.
-- The learning plan has no endpoint for item state updates. Usage totals are lifetime, not per billing period. Data-export expiry is not shown to learners.
+- The learning plan has no endpoint for item state updates. Usage totals are lifetime, not per billing period.
 - Owner console browser coverage is a smoke test. The approve/publish/withdraw actions are covered at the API level, not by clicking through the UI.
 
 ## Real dependencies (what unblocks the next steps)

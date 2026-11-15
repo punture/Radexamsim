@@ -49,7 +49,12 @@ export class LiveRegistry {
     return rows.length;
   }
 
+  /** Process stop: finish queued work, then stop every timer. Durable state is already persisted. */
   async shutdown(): Promise<void> {
-    for (const s of this.sessions.values()) await s.drain();
+    for (const s of this.sessions.values()) {
+      await s.drain();
+      s.halt();
+    }
+    this.sessions.clear();
   }
 }

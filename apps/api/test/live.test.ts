@@ -158,6 +158,60 @@ describe("live examination flow (demo case, deterministic examiner)", () => {
     expect(events.filter((e) => e.type === "case.started").length).toBe(1);
   }, 30_000);
 
+  it("recovers a live session after an API restart: platform pause, resume on reconnect, no lost time or repeated speech", async () => {
+    const env2 = await startTestEnv();
+    try {
+      const http = new Http(env2.base);
+      await http.login("learner@example.test", "learner-dev-password-123");
+      const created = await http.req("POST", "/api/sessions", { profileVersionId: "abr-dr-neuro-oral@2026-11-15.1", mode: "exam", inputMode: "voice" });
+      const sessionId = created.json.sessionId as string;
+      await http.req("POST", `/api/sessions/${sessionId}/preflight`, PREFLIGHT_OK);
+      const t1 = await http.req("POST", `/api/sessions/${sessionId}/ws-ticket`);
+      const client = new TestClient();
+      await client.connect(`${env2.base.replace("http", "ws")}/ws`, t1.json.ticket);
+      client.send({ type: "start_station", commandId: client.nextId() });
+      await client.waitFor((m) => m.type === "examiner_utterance");
+      await new Promise((r) => setTimeout(r, 200));
+      const questionsBefore = (await env2.db.select().from(examinerUtterances).where(eq(examinerUtterances.sessionId, sessionId))).filter((u) => u.kind !== "technical");
+      client.close();
+
+      // The process stops and a new one starts on the same database.
+      expect(await env2.restart()).toBe(1);
+      const [paused] = await env2.db.select().from(stationSessions).where(eq(stationSessions.id, sessionId));
+      expect(paused!.status).toBe("technically_interrupted");
+      expect(paused!.clock.pauses.at(-1)).toMatchObject({ reason: "technical_platform", endedAtWallMs: null });
+
+      // Reconnecting through the new process resumes the station with the clock restarted.
+      const http2 = new Http(env2.base);
+      await http2.login("learner@example.test", "learner-dev-password-123");
+      const t2 = await http2.req("POST", `/api/sessions/${sessionId}/ws-ticket`);
+      const client2 = new TestClient();
+      await client2.connect(`${env2.base.replace("http", "ws")}/ws`, t2.json.ticket);
+      await client2.waitFor((m) => m.type === "state" && m.state.status === "active");
+      const [resumed] = await env2.db.select().from(stationSessions).where(eq(stationSessions.id, sessionId));
+      expect(resumed!.clock.pauses.at(-1)!.endedAtWallMs).not.toBeNull();
+      const events = await env2.db.select().from(sessionEvents).where(eq(sessionEvents.sessionId, sessionId));
+      expect(events.some((e) => e.type === "session.technical_pause")).toBe(true);
+      expect(events.some((e) => e.type === "session.resumed")).toBe(true);
+      expect(events.filter((e) => e.type === "case.started").length).toBe(1);
+      const seqs = events.map((e) => e.seq).sort((a, b) => a - b);
+      expect(seqs).toEqual(seqs.map((_, i) => i + 1));
+      // No approved question was repeated by the restart.
+      await new Promise((r) => setTimeout(r, 400));
+      const questionsAfter = (await env2.db.select().from(examinerUtterances).where(eq(examinerUtterances.sessionId, sessionId))).filter((u) => u.kind !== "technical");
+      expect(questionsAfter.length).toBe(questionsBefore.length);
+      // The examination continues.
+      const n = client2.messages.length;
+      client2.say("I have described the main findings. That's all.");
+      await client2.waitFor((m) => m.type === "examiner_utterance" && m.kind !== "technical", 8000, n);
+      client2.send({ type: "request_end_station", commandId: client2.nextId() });
+      await client2.waitFor((m) => m.type === "station_ended", 8000, n);
+      client2.close();
+    } finally {
+      await env2.close();
+    }
+  }, 45_000);
+
   it("treats a failed image render as a technical limitation and keeps the session going", async () => {
     const http = new Http(env.base);
     await http.login("learner@example.test", "learner-dev-password-123");

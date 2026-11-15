@@ -175,7 +175,8 @@ Details, including statuses, prompting levels, caps and board-specific display, 
 
 ## 10. Scaling notes
 
-- `LiveSession` objects live in API process memory (`apps/api/src/live/registry.ts`). Running more than one API instance needs sticky routing by session, or a single instance per session group. Durable state survives restarts: a restarted API rebuilds the session from PostgreSQL on the next connection. A reconnect after a restart is not covered by an automated test.
+- `LiveSession` objects live in API process memory (`apps/api/src/live/registry.ts`). Running more than one API instance needs sticky routing by session, or a single instance per session group.
+- Durable state survives restarts. On startup the API pauses sessions left active as a platform failure, with the clock stopped at the last durable event. The next connection rebuilds the session from PostgreSQL and resumes it, without lost time or repeated questions; this is covered by a restart test in `apps/api/test/live.test.ts`. On shutdown, every session timer is stopped after queued work drains.
 - Media is streamed through the API. At larger scale, add a signed-URL storage driver with short TTLs that keeps handle-level authorization.
 - The worker scales horizontally: claiming uses `SKIP LOCKED`, and jobs are idempotent by dedupe key.
 
@@ -186,6 +187,6 @@ Details, including statuses, prompting levels, caps and board-specific display, 
 3. An S3-compatible private storage driver with server-side encryption and versioning.
 4. Hosting decision and deployment (needs owner authorization): sticky WebSocket routing, managed PostgreSQL with point-in-time recovery, secrets management.
 5. Cornerstone3D DICOM stack viewing once suitable de-identified DICOM exists.
-6. A test for reconnecting to a session after an API restart; load test at the stated pilot concurrency.
+6. Load test at the stated pilot concurrency.
 7. Owner verification of the exam profiles against current official pages, which are blocked from this build environment.
 8. Learning-plan item state updates (start, complete, skip) and per-period usage totals.
