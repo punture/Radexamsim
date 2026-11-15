@@ -1,0 +1,11 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+  - "evals"
+  - "fixtures"
+onlyBuiltDependencies:
+  - esbuild
+  - "@resvg/resvg-js"
+  - sharp
+catalog:
+  zod: ^4.6.7

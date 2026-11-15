@@ -1,0 +1,21 @@
+node_modules/
+.next/
+dist/
+coverage/
+*.log
+.env
+.env.*
+!.env.example
+var/
+!var/.gitkeep
+playwright-report/
+test-results/
+.turbo/
+*.tsbuildinfo
+# Source clinical assets and learner recordings must never enter Git.
+quarantine/
+source-assets/
+recordings/
+tools/ingestion/.venv/
+tools/ingestion/out/
+__pycache__/

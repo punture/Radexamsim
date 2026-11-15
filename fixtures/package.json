@@ -1,0 +1,13 @@
+{
+  "name": "@sim/fixtures",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "build:fixtures": "tsx src/build.ts"
+  },
+  "dependencies": { "@sim/contracts": "workspace:*", "@sim/clinical-content": "workspace:*" },
+  "devDependencies": { "@resvg/resvg-js": "^2.6.2" }
+}

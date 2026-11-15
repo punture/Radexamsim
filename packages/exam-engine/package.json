@@ -1,0 +1,19 @@
+{
+  "name": "@sim/exam-engine",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@sim/contracts": "workspace:*"
+  },
+  "devDependencies": {
+    "@sim/fixtures": "workspace:*",
+    "@sim/clinical-content": "workspace:*"
+  }
+}

@@ -1,0 +1,961 @@
+{
+  "schemaVersion": 1,
+  "caseId": "fx-spine-cord-compression",
+  "versionId": "fx-spine-cord-compression@v1",
+  "versionNumber": 1,
+  "previousVersionId": null,
+  "caseFamilyId": "fx-family-spine",
+  "internalTitle": "[FIXTURE] Thoracic epidural mass with cord compression (fictional)",
+  "candidateTitle": "Neuroradiology case",
+  "tags": {
+    "anatomy": [
+      "spine"
+    ],
+    "pathology": [
+      "epidural-metastasis",
+      "cord-compression"
+    ],
+    "skills": [
+      "detection",
+      "urgency",
+      "consultation"
+    ]
+  },
+  "eligibleProfileVersions": [
+    "abr-dr-neuro-oral@*",
+    "rcpsc-dr-neuro-practice@*"
+  ],
+  "difficulty": "core",
+  "track": "core",
+  "isDevelopmentFixture": true,
+  "source": {
+    "references": [
+      {
+        "id": "fx-src",
+        "kind": "owner_note",
+        "sourceFileId": null,
+        "locator": null,
+        "description": "Fictional development fixture authored for software testing; not derived from any patient or teaching file.",
+        "citation": null
+      }
+    ],
+    "diagnosticBasis": "Fictional development fixture — no clinical basis.",
+    "truthStatus": "confirmed",
+    "commercialRightsStatus": "cleared",
+    "privacyStatus": "approved"
+  },
+  "clearances": {
+    "rights": {
+      "status": "cleared",
+      "basis": "Authored by the development team; contains no third-party or patient material.",
+      "restrictions": "Development and testing only.",
+      "recordedBy": "fixture-author",
+      "recordedAt": "2026-11-15T00:00:00.000Z"
+    },
+    "privacy": {
+      "status": "cleared",
+      "basis": "No patient data. Schematic placeholder drawings only.",
+      "restrictions": "",
+      "recordedBy": "fixture-author",
+      "recordedAt": "2026-11-15T00:00:00.000Z"
+    },
+    "externalAiProcessingAllowed": true
+  },
+  "clinicalTruth": {
+    "finalDiagnosis": "Thoracic epidural metastasis causing spinal cord compression (fictional)",
+    "displayedMaterialSupports": "leading_with_differential",
+    "keyFindings": [
+      {
+        "id": "kf-epidural-mass",
+        "description": "Posterior epidural soft-tissue mass at a mid-thoracic level",
+        "location": "mid-thoracic posterior epidural space",
+        "laterality": "midline",
+        "assetIds": [
+          "mr-t2-sag",
+          "mr-t1c-sag"
+        ],
+        "conspicuity": "obvious"
+      },
+      {
+        "id": "kf-cord-compression",
+        "description": "Narrowing and displacement of the spinal cord at the same level",
+        "location": "mid-thoracic cord",
+        "laterality": "midline",
+        "assetIds": [
+          "mr-t2-sag"
+        ],
+        "conspicuity": "obvious"
+      }
+    ],
+    "acceptableDiagnoses": [
+      "epidural metastatic disease with cord compression",
+      "metastatic epidural spinal cord compression"
+    ],
+    "differential": [
+      {
+        "diagnosis": "Epidural metastasis",
+        "rank": 1,
+        "rationale": "Enhancing epidural mass in a patient with known malignancy."
+      },
+      {
+        "diagnosis": "Epidural abscess",
+        "rank": 2,
+        "rationale": "Considered if infective features are present."
+      },
+      {
+        "diagnosis": "Epidural hematoma",
+        "rank": 3,
+        "rationale": "Considered with anticoagulation or trauma."
+      }
+    ],
+    "managementExpectations": [
+      "Emergent communication with spine surgery or oncology",
+      "Whole-spine MRI to look for additional levels"
+    ],
+    "urgency": "emergent",
+    "criticalCommunication": "Immediate direct communication of cord compression to the referring and spine teams.",
+    "uncertaintyNotes": "Fictional fixture with schematic images.",
+    "teachingPoints": [
+      "Cord compression is an emergency; image the whole spine."
+    ],
+    "leakCanary": "CANARY-TRUTH-2b81de"
+  },
+  "openingStageId": "st-mri",
+  "assets": [
+    {
+      "id": "mr-t2-sag",
+      "kind": "stack",
+      "modality": "MR",
+      "neutralLabel": "MRI thoracic spine, sagittal T2",
+      "sequence": "T2",
+      "plane": "sagittal",
+      "contrast": "none",
+      "frames": [
+        {
+          "index": 0,
+          "storageKey": "fixtures/fx-spine-cord-compression/mr-t2-sag/0.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "88800b2548ff24dd5bb99e0b00cc42512a5e20d514bd2e29b14dddc7a154c2c1",
+          "byteSize": 26192,
+          "sliceLocation": null,
+          "instanceNumber": null
+        },
+        {
+          "index": 1,
+          "storageKey": "fixtures/fx-spine-cord-compression/mr-t2-sag/1.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "596c0962e577a12eeb280ab2a24ac8ffbbaf70a4ee95fbdf15580d46b827b2cc",
+          "byteSize": 26202,
+          "sliceLocation": null,
+          "instanceNumber": null
+        },
+        {
+          "index": 2,
+          "storageKey": "fixtures/fx-spine-cord-compression/mr-t2-sag/2.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "3c35f6d74e06bc96510e093042b8b860c803699934baa818f828e0e32e6be8a4",
+          "byteSize": 26749,
+          "sliceLocation": null,
+          "instanceNumber": null
+        },
+        {
+          "index": 3,
+          "storageKey": "fixtures/fx-spine-cord-compression/mr-t2-sag/3.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "2c8953d702e3a36add537c80cc174f394675fe62cc524321a67f065436fdef86",
+          "byteSize": 26688,
+          "sliceLocation": null,
+          "instanceNumber": null
+        },
+        {
+          "index": 4,
+          "storageKey": "fixtures/fx-spine-cord-compression/mr-t2-sag/4.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "4083accc9a6a6b16536fd32aad70e703a58a7e6664a31a124295d053ef15d064",
+          "byteSize": 26792,
+          "sliceLocation": null,
+          "instanceNumber": null
+        },
+        {
+          "index": 5,
+          "storageKey": "fixtures/fx-spine-cord-compression/mr-t2-sag/5.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "135fb0b3d3988c790738b5611b322cc007ff79513142f618d2c688e90a063c5e",
+          "byteSize": 26731,
+          "sliceLocation": null,
+          "instanceNumber": null
+        },
+        {
+          "index": 6,
+          "storageKey": "fixtures/fx-spine-cord-compression/mr-t2-sag/6.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "2fa65093bd2e691ca4f744abb79ca898a2b35fdcd761ed7271b1efb81b5cc91a",
+          "byteSize": 26731,
+          "sliceLocation": null,
+          "instanceNumber": null
+        },
+        {
+          "index": 7,
+          "storageKey": "fixtures/fx-spine-cord-compression/mr-t2-sag/7.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "6affb64408e626d140d529f853e0d8ac463a044557b5b8165ae4cba23d725df3",
+          "byteSize": 26256,
+          "sliceLocation": null,
+          "instanceNumber": null
+        },
+        {
+          "index": 8,
+          "storageKey": "fixtures/fx-spine-cord-compression/mr-t2-sag/8.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "b59335c4399e8940eafd63be3e709bb5602808e522d7fbbdca1d7047e820f2d5",
+          "byteSize": 26239,
+          "sliceLocation": null,
+          "instanceNumber": null
+        }
+      ],
+      "derivation": {
+        "sourceReferenceId": "fx-src",
+        "method": "placeholder",
+        "notes": "Schematic placeholder generated by fixtures/src/media.ts.",
+        "preservesDiagnosticContent": false,
+        "burnedInAnnotationsPresent": false
+      },
+      "isPlaceholder": true,
+      "display": {
+        "initialFrameIndex": 4,
+        "initialZoom": "fit",
+        "frameRateFps": 6
+      },
+      "dicom": null,
+      "annotations": []
+    },
+    {
+      "id": "mr-t1c-sag",
+      "kind": "stack",
+      "modality": "MR",
+      "neutralLabel": "MRI thoracic spine, sagittal T1 post-contrast",
+      "sequence": "T1 post-contrast",
+      "plane": "sagittal",
+      "contrast": "intravenous",
+      "frames": [
+        {
+          "index": 0,
+          "storageKey": "fixtures/fx-spine-cord-compression/mr-t1c-sag/0.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "8c84d0ae74f7c25a00975b7297e66d5cbc44d26e90ec2e90668de8236b7368e2",
+          "byteSize": 26448,
+          "sliceLocation": null,
+          "instanceNumber": null
+        },
+        {
+          "index": 1,
+          "storageKey": "fixtures/fx-spine-cord-compression/mr-t1c-sag/1.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "d45d0d7d8a2630e3d49efc5d5fe87c5b2ba6eed5455848f69e372e381794d11a",
+          "byteSize": 26470,
+          "sliceLocation": null,
+          "instanceNumber": null
+        },
+        {
+          "index": 2,
+          "storageKey": "fixtures/fx-spine-cord-compression/mr-t1c-sag/2.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "a1df9296cae4f9458438d973d0f6f91ec7f8a389278c7eb3f4cb9d27a5bcea8c",
+          "byteSize": 27043,
+          "sliceLocation": null,
+          "instanceNumber": null
+        },
+        {
+          "index": 3,
+          "storageKey": "fixtures/fx-spine-cord-compression/mr-t1c-sag/3.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "3bce7180b0a1837c0e8035e440900d3c3569363acda660283d1d294b44b93225",
+          "byteSize": 27097,
+          "sliceLocation": null,
+          "instanceNumber": null
+        },
+        {
+          "index": 4,
+          "storageKey": "fixtures/fx-spine-cord-compression/mr-t1c-sag/4.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "17014774a677b5d0631bf42f9386cdaea0efa4978602ab44e0d7335496e82c1e",
+          "byteSize": 27168,
+          "sliceLocation": null,
+          "instanceNumber": null
+        },
+        {
+          "index": 5,
+          "storageKey": "fixtures/fx-spine-cord-compression/mr-t1c-sag/5.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "32a36d1891d07bdf93fb2ee959c206e8ccbec2c6fae4ecd8c6d5c009566043a1",
+          "byteSize": 27135,
+          "sliceLocation": null,
+          "instanceNumber": null
+        },
+        {
+          "index": 6,
+          "storageKey": "fixtures/fx-spine-cord-compression/mr-t1c-sag/6.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "71f3c6aebbf7d3d8ef16e052288060856edd01ebc0c5cd89a03ee97caaba44dc",
+          "byteSize": 27005,
+          "sliceLocation": null,
+          "instanceNumber": null
+        },
+        {
+          "index": 7,
+          "storageKey": "fixtures/fx-spine-cord-compression/mr-t1c-sag/7.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "e1ed3dc2f0b9cd90397c33f95012d63b6867c98763320814d075dd06f9d14d68",
+          "byteSize": 26501,
+          "sliceLocation": null,
+          "instanceNumber": null
+        },
+        {
+          "index": 8,
+          "storageKey": "fixtures/fx-spine-cord-compression/mr-t1c-sag/8.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "497e83c5d634d04b60993765d1271168c7900f48cdcae39a6782296994b52938",
+          "byteSize": 26512,
+          "sliceLocation": null,
+          "instanceNumber": null
+        }
+      ],
+      "derivation": {
+        "sourceReferenceId": "fx-src",
+        "method": "placeholder",
+        "notes": "Schematic placeholder generated by fixtures/src/media.ts.",
+        "preservesDiagnosticContent": false,
+        "burnedInAnnotationsPresent": false
+      },
+      "isPlaceholder": true,
+      "display": {
+        "initialFrameIndex": 4,
+        "initialZoom": "fit",
+        "frameRateFps": 6
+      },
+      "dicom": null,
+      "annotations": []
+    }
+  ],
+  "viewportPresets": [
+    {
+      "id": "vp-pair",
+      "layout": "side_by_side",
+      "panes": [
+        {
+          "assetId": "mr-t2-sag",
+          "frameIndex": null,
+          "zoom": "fit"
+        },
+        {
+          "assetId": "mr-t1c-sag",
+          "frameIndex": null,
+          "zoom": "fit"
+        }
+      ],
+      "containsLesionCue": false
+    }
+  ],
+  "stages": [
+    {
+      "id": "st-mri",
+      "ordinal": 0,
+      "label": "MRI thoracic spine",
+      "candidateHistory": "A 58-year-old with a history of treated breast cancer presents with two days of progressive leg weakness and difficulty walking. (Fictional development case — not a patient.)",
+      "assetIds": [
+        "mr-t2-sag",
+        "mr-t1c-sag"
+      ],
+      "viewportPresetIds": [
+        "vp-pair"
+      ],
+      "defaultViewportPresetId": "vp-pair",
+      "allowedActions": [
+        "viewer.scroll",
+        "viewer.zoom_pan",
+        "viewer.brightness_contrast",
+        "viewer.compare",
+        "viewer.cine",
+        "examiner.select_series",
+        "examiner.set_viewport",
+        "examiner.request_stage_reveal",
+        "examiner.deliver_question",
+        "examiner.deliver_fact_reply",
+        "examiner.advance_case"
+      ],
+      "allowedQuestionIds": [
+        "q-open",
+        "q-ddx",
+        "q-next"
+      ],
+      "approvedFactReplies": [
+        {
+          "id": "fr-prior",
+          "triggerDescription": "candidate asks for prior imaging",
+          "triggerPatterns": [
+            "prior",
+            "previous",
+            "comparison"
+          ],
+          "replyText": "No prior spine imaging is available.",
+          "kind": "unavailable",
+          "revealsStageId": null,
+          "suppliesElementIds": [],
+          "promptClass": "neutral"
+        },
+        {
+          "id": "fr-axial",
+          "triggerDescription": "candidate asks for axial images",
+          "triggerPatterns": [
+            "axial"
+          ],
+          "replyText": "Axial images are not available for this case.",
+          "kind": "unavailable",
+          "revealsStageId": null,
+          "suppliesElementIds": [],
+          "promptClass": "neutral"
+        }
+      ],
+      "transitions": [],
+      "assessableRubricElementIds": [
+        "s-mass",
+        "s-compression",
+        "s-diagnosis",
+        "s-urgency",
+        "s-whole-spine"
+      ],
+      "examinerNotes": "Let the candidate present. Ask for the diagnosis and next steps if not offered.",
+      "revealAnnouncement": null
+    }
+  ],
+  "questions": [
+    {
+      "id": "q-open",
+      "text": "Please describe the findings and give your interpretation.",
+      "purpose": "opening",
+      "promptClass": "neutral",
+      "targetElementIds": [],
+      "suppliesElementIds": [],
+      "modes": [
+        "exam",
+        "practice"
+      ],
+      "order": 0,
+      "skipIfAlreadyAddressed": null,
+      "addressedPatterns": []
+    },
+    {
+      "id": "q-ddx",
+      "text": "What is your leading diagnosis and differential?",
+      "purpose": "standard",
+      "promptClass": "standard_question",
+      "targetElementIds": [
+        "s-diagnosis"
+      ],
+      "suppliesElementIds": [],
+      "modes": [
+        "exam",
+        "practice"
+      ],
+      "order": 1,
+      "skipIfAlreadyAddressed": "the candidate has already given a leading diagnosis and differential",
+      "addressedPatterns": [
+        "metasta",
+        "abscess",
+        "hematoma",
+        "haematoma"
+      ]
+    },
+    {
+      "id": "q-next",
+      "text": "What would you do next?",
+      "purpose": "standard",
+      "promptClass": "standard_question",
+      "targetElementIds": [
+        "s-urgency",
+        "s-whole-spine"
+      ],
+      "suppliesElementIds": [],
+      "modes": [
+        "exam",
+        "practice"
+      ],
+      "order": 2,
+      "skipIfAlreadyAddressed": null,
+      "addressedPatterns": []
+    }
+  ],
+  "rubric": {
+    "versionId": "fx-spine-cord-compression-rubric@v1",
+    "domains": [
+      {
+        "id": "observation",
+        "description": "Detection and description of findings, including pertinent negatives and localization.",
+        "anchors": [
+          {
+            "level": "unsafe",
+            "descriptor": "Misses or misstates findings in a way that could cause harm (e.g. wrong side, calls an abnormal study normal)."
+          },
+          {
+            "level": "below_expected",
+            "descriptor": "Identifies some findings but misses important ones or describes them inaccurately."
+          },
+          {
+            "level": "meets_expected",
+            "descriptor": "Identifies the key findings and important pertinent negatives with accurate localization."
+          },
+          {
+            "level": "strong",
+            "descriptor": "Systematic, accurate description including subtle findings, efficiently prioritized."
+          },
+          {
+            "level": "exceptional",
+            "descriptor": "Complete, precise and efficient description that anticipates the clinical question."
+          }
+        ]
+      },
+      {
+        "id": "interpretation",
+        "description": "Synthesis of findings and history into a leading diagnosis and prioritized differential.",
+        "anchors": [
+          {
+            "level": "unsafe",
+            "descriptor": "Commits to a diagnosis that is wrong in a way that could lead to harmful management."
+          },
+          {
+            "level": "below_expected",
+            "descriptor": "Leading diagnosis missing or poorly supported; differential unfocused."
+          },
+          {
+            "level": "meets_expected",
+            "descriptor": "Reasonable leading diagnosis supported by the findings, with a relevant differential."
+          },
+          {
+            "level": "strong",
+            "descriptor": "Well-reasoned, prioritized differential with discriminating features."
+          },
+          {
+            "level": "exceptional",
+            "descriptor": "Expert synthesis integrating all sequences and history concisely."
+          }
+        ]
+      },
+      {
+        "id": "management",
+        "description": "Next steps, additional imaging, and recognition of urgency.",
+        "anchors": [
+          {
+            "level": "unsafe",
+            "descriptor": "Recommends harmful or dangerously delayed management, or fails to recognize an emergency."
+          },
+          {
+            "level": "below_expected",
+            "descriptor": "Next steps incomplete or poorly prioritized."
+          },
+          {
+            "level": "meets_expected",
+            "descriptor": "Appropriate next steps with correct urgency."
+          },
+          {
+            "level": "strong",
+            "descriptor": "Specific, prioritized recommendations with rationale."
+          },
+          {
+            "level": "exceptional",
+            "descriptor": "Comprehensive, efficient plan anticipating downstream decisions."
+          }
+        ]
+      },
+      {
+        "id": "communication",
+        "description": "Clear, organized presentation and appropriate consultation.",
+        "anchors": [
+          {
+            "level": "unsafe",
+            "descriptor": "Fails to communicate a critical result through an appropriate direct channel."
+          },
+          {
+            "level": "below_expected",
+            "descriptor": "Disorganized or incomplete communication; consultation unclear."
+          },
+          {
+            "level": "meets_expected",
+            "descriptor": "Clear communication with appropriate consultation."
+          },
+          {
+            "level": "strong",
+            "descriptor": "Concise, well-organized and prioritized communication."
+          },
+          {
+            "level": "exceptional",
+            "descriptor": "Exemplary consultant-level communication."
+          }
+        ]
+      }
+    ],
+    "elements": [
+      {
+        "id": "s-mass",
+        "domain": "observation",
+        "construct": "Identifies the posterior epidural mass at the mid-thoracic level.",
+        "acceptedConcepts": [
+          "epidural mass",
+          "posterior epidural soft tissue",
+          "enhancing epidural lesion"
+        ],
+        "acceptableAlternatives": [
+          "extradural mass"
+        ],
+        "incorrectOrUnsafeClaims": [
+          "describes the mass as intramedullary"
+        ],
+        "requiredAssetIds": [
+          "mr-t2-sag"
+        ],
+        "opportunityRule": {
+          "kind": "from_stage_assets",
+          "stageId": "st-mri",
+          "questionIds": [],
+          "requireAllAssetsRendered": false,
+          "minExposureSeconds": 20
+        },
+        "promptingPolicy": {
+          "spontaneousExpected": true,
+          "standardQuestionIds": [],
+          "targetedProbeIds": [],
+          "rescueIds": [],
+          "credit": {
+            "spontaneous": "full",
+            "standard_question": "full",
+            "targeted_probe": "partial",
+            "rescue": "none",
+            "examiner_supplied": "none"
+          }
+        },
+        "severity": "important",
+        "dependencyElementIds": [],
+        "referenceIds": [
+          "fx-src"
+        ],
+        "skills": [
+          "detection",
+          "feature_description"
+        ],
+        "feedbackGuidance": {
+          "whyItMatters": "Compartment localization narrows the differential.",
+          "strongerResponse": "Name the compartment (epidural) and level explicitly.",
+          "practiceAction": "Localize every spinal lesion to a compartment before naming a diagnosis."
+        }
+      },
+      {
+        "id": "s-compression",
+        "domain": "observation",
+        "construct": "Identifies spinal cord compression at the level of the mass.",
+        "acceptedConcepts": [
+          "cord compression",
+          "compression of the spinal cord",
+          "cord displaced and narrowed"
+        ],
+        "acceptableAlternatives": [
+          "mass effect on the cord"
+        ],
+        "incorrectOrUnsafeClaims": [
+          "states there is no cord compression"
+        ],
+        "requiredAssetIds": [
+          "mr-t2-sag"
+        ],
+        "opportunityRule": {
+          "kind": "from_stage_assets",
+          "stageId": "st-mri",
+          "questionIds": [],
+          "requireAllAssetsRendered": false,
+          "minExposureSeconds": 20
+        },
+        "promptingPolicy": {
+          "spontaneousExpected": true,
+          "standardQuestionIds": [],
+          "targetedProbeIds": [],
+          "rescueIds": [],
+          "credit": {
+            "spontaneous": "full",
+            "standard_question": "full",
+            "targeted_probe": "partial",
+            "rescue": "none",
+            "examiner_supplied": "none"
+          }
+        },
+        "severity": "critical",
+        "dependencyElementIds": [],
+        "referenceIds": [
+          "fx-src"
+        ],
+        "skills": [
+          "detection"
+        ],
+        "feedbackGuidance": {
+          "whyItMatters": "Cord compression is a neurological emergency.",
+          "strongerResponse": "State the presence and level of cord compression early.",
+          "practiceAction": "Comment on the cord at every level you describe."
+        }
+      },
+      {
+        "id": "s-diagnosis",
+        "domain": "interpretation",
+        "construct": "Gives epidural metastasis as the leading diagnosis with a reasonable differential.",
+        "acceptedConcepts": [
+          "epidural metastasis",
+          "metastatic disease"
+        ],
+        "acceptableAlternatives": [
+          "metastatic epidural spinal cord compression"
+        ],
+        "incorrectOrUnsafeClaims": [
+          "commits to a benign diagnosis without considering metastasis"
+        ],
+        "requiredAssetIds": [
+          "mr-t2-sag"
+        ],
+        "opportunityRule": {
+          "kind": "either",
+          "stageId": "st-mri",
+          "questionIds": [
+            "q-ddx"
+          ],
+          "requireAllAssetsRendered": false,
+          "minExposureSeconds": 15
+        },
+        "promptingPolicy": {
+          "spontaneousExpected": true,
+          "standardQuestionIds": [
+            "q-ddx"
+          ],
+          "targetedProbeIds": [],
+          "rescueIds": [],
+          "credit": {
+            "spontaneous": "full",
+            "standard_question": "full",
+            "targeted_probe": "partial",
+            "rescue": "none",
+            "examiner_supplied": "none"
+          }
+        },
+        "severity": "important",
+        "dependencyElementIds": [
+          "s-mass"
+        ],
+        "referenceIds": [
+          "fx-src"
+        ],
+        "skills": [
+          "differential_prioritization",
+          "integration"
+        ],
+        "feedbackGuidance": {
+          "whyItMatters": "The history of malignancy makes metastasis the leading consideration.",
+          "strongerResponse": "Integrate the oncologic history and commit to metastasis, listing abscess and hematoma as alternatives.",
+          "practiceAction": "Use the history explicitly in your final synthesis."
+        }
+      },
+      {
+        "id": "s-urgency",
+        "domain": "management",
+        "construct": "Recognizes the emergency and recommends immediate direct communication with the spine/oncology team.",
+        "acceptedConcepts": [
+          "emergency",
+          "urgent spine surgery consultation",
+          "call the team immediately"
+        ],
+        "acceptableAlternatives": [
+          "urgent radiation oncology referral"
+        ],
+        "incorrectOrUnsafeClaims": [
+          "recommends routine follow-up"
+        ],
+        "requiredAssetIds": [],
+        "opportunityRule": {
+          "kind": "either",
+          "stageId": "st-mri",
+          "questionIds": [
+            "q-next"
+          ],
+          "requireAllAssetsRendered": false,
+          "minExposureSeconds": 10
+        },
+        "promptingPolicy": {
+          "spontaneousExpected": true,
+          "standardQuestionIds": [
+            "q-next"
+          ],
+          "targetedProbeIds": [],
+          "rescueIds": [],
+          "credit": {
+            "spontaneous": "full",
+            "standard_question": "full",
+            "targeted_probe": "partial",
+            "rescue": "none",
+            "examiner_supplied": "none"
+          }
+        },
+        "severity": "critical",
+        "dependencyElementIds": [],
+        "referenceIds": [
+          "fx-src"
+        ],
+        "skills": [
+          "urgency",
+          "consultation"
+        ],
+        "feedbackGuidance": {
+          "whyItMatters": "Delay in decompression or radiotherapy risks permanent deficit.",
+          "strongerResponse": "Call the treating and spine teams directly and immediately.",
+          "practiceAction": "End every emergency case with who you would call and how quickly."
+        }
+      },
+      {
+        "id": "s-whole-spine",
+        "domain": "management",
+        "construct": "Recommends whole-spine MRI to look for additional levels of disease.",
+        "acceptedConcepts": [
+          "whole spine MRI",
+          "image the entire spine"
+        ],
+        "acceptableAlternatives": [
+          "MRI of the cervical and lumbar spine as well"
+        ],
+        "incorrectOrUnsafeClaims": [],
+        "requiredAssetIds": [],
+        "opportunityRule": {
+          "kind": "after_question",
+          "stageId": "st-mri",
+          "questionIds": [
+            "q-next"
+          ],
+          "requireAllAssetsRendered": false,
+          "minExposureSeconds": 10
+        },
+        "promptingPolicy": {
+          "spontaneousExpected": false,
+          "standardQuestionIds": [
+            "q-next"
+          ],
+          "targetedProbeIds": [],
+          "rescueIds": [],
+          "credit": {
+            "spontaneous": "full",
+            "standard_question": "full",
+            "targeted_probe": "partial",
+            "rescue": "none",
+            "examiner_supplied": "none"
+          }
+        },
+        "severity": "minor",
+        "dependencyElementIds": [],
+        "referenceIds": [
+          "fx-src"
+        ],
+        "skills": [
+          "additional_imaging"
+        ],
+        "feedbackGuidance": {
+          "whyItMatters": "Multilevel disease is common and affects treatment planning.",
+          "strongerResponse": "Recommend whole-spine imaging.",
+          "practiceAction": "Ask yourself what else needs imaging before closing the case."
+        }
+      }
+    ],
+    "globalRules": {
+      "criticalUnsafeCap": "unsafe",
+      "criticalOmissionCap": "below_expected",
+      "withholdIfUncertainCriticalOrImportant": 2,
+      "anchors": [
+        {
+          "level": "unsafe",
+          "descriptor": "Poor or potentially unsafe performance on the case."
+        },
+        {
+          "level": "below_expected",
+          "descriptor": "Below the satisfactory standard: important gaps."
+        },
+        {
+          "level": "meets_expected",
+          "descriptor": "Satisfactory: key findings, reasonable diagnosis, appropriate management."
+        },
+        {
+          "level": "strong",
+          "descriptor": "Good: reasonable, well-presented analysis with few knowledge gaps."
+        },
+        {
+          "level": "exceptional",
+          "descriptor": "Outstanding: complete, efficient, expert-level performance."
+        }
+      ]
+    }
+  },
+  "referenceResponses": [
+    {
+      "id": "ref-concise",
+      "kind": "concise_reference",
+      "text": "There is a posterior epidural mass at a mid-thoracic level compressing and displacing the spinal cord. Given the history of breast cancer, epidural metastasis is most likely; abscess and hematoma are less likely alternatives. This is an emergency: I would call the treating and spine teams directly now and recommend whole-spine MRI.",
+      "coversElementIds": [
+        "s-mass",
+        "s-compression",
+        "s-diagnosis",
+        "s-urgency",
+        "s-whole-spine"
+      ]
+    }
+  ],
+  "practice": {
+    "hints": [
+      {
+        "id": "h-cord",
+        "elementIds": [
+          "s-compression"
+        ],
+        "level": "nudge",
+        "text": "What is happening to the spinal cord at that level?"
+      }
+    ],
+    "workedExample": null
+  },
+  "ownerApproval": null,
+  "publicationStatus": "draft",
+  "changeLog": []
+}

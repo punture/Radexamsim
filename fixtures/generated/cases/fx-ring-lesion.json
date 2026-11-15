@@ -1,0 +1,1000 @@
+{
+  "schemaVersion": 1,
+  "caseId": "fx-ring-lesion",
+  "versionId": "fx-ring-lesion@v1",
+  "versionNumber": 1,
+  "previousVersionId": null,
+  "caseFamilyId": "fx-family-ring",
+  "internalTitle": "[FIXTURE] Solitary ring-enhancing lesion, differential only (fictional)",
+  "candidateTitle": "Neuroradiology case",
+  "tags": {
+    "anatomy": [
+      "brain"
+    ],
+    "pathology": [
+      "ring-enhancing-lesion"
+    ],
+    "skills": [
+      "differential_prioritization",
+      "additional_imaging"
+    ]
+  },
+  "eligibleProfileVersions": [
+    "abr-dr-neuro-oral@*",
+    "rcpsc-dr-neuro-practice@*",
+    "advanced-neuro-practice@*"
+  ],
+  "difficulty": "challenging",
+  "track": "core",
+  "isDevelopmentFixture": true,
+  "source": {
+    "references": [
+      {
+        "id": "fx-src",
+        "kind": "owner_note",
+        "sourceFileId": null,
+        "locator": null,
+        "description": "Fictional development fixture authored for software testing; not derived from any patient or teaching file.",
+        "citation": null
+      }
+    ],
+    "diagnosticBasis": "Fictional development fixture — no clinical basis.",
+    "truthStatus": "differential_only",
+    "commercialRightsStatus": "cleared",
+    "privacyStatus": "approved"
+  },
+  "clearances": {
+    "rights": {
+      "status": "cleared",
+      "basis": "Authored by the development team; contains no third-party or patient material.",
+      "restrictions": "Development and testing only.",
+      "recordedBy": "fixture-author",
+      "recordedAt": "2026-11-15T00:00:00.000Z"
+    },
+    "privacy": {
+      "status": "cleared",
+      "basis": "No patient data. Schematic placeholder drawings only.",
+      "restrictions": "",
+      "recordedBy": "fixture-author",
+      "recordedAt": "2026-11-15T00:00:00.000Z"
+    },
+    "externalAiProcessingAllowed": true
+  },
+  "clinicalTruth": {
+    "finalDiagnosis": "Not established on the displayed images; differential includes high-grade glioma, metastasis and abscess (fictional)",
+    "displayedMaterialSupports": "differential_only",
+    "keyFindings": [
+      {
+        "id": "kf-ring",
+        "description": "Solitary ring-enhancing lesion in the right frontal lobe",
+        "location": "right frontal lobe",
+        "laterality": "right",
+        "assetIds": [
+          "mr-t1c-ax"
+        ],
+        "conspicuity": "obvious"
+      },
+      {
+        "id": "kf-edema",
+        "description": "Surrounding vasogenic edema",
+        "location": "right frontal white matter",
+        "laterality": "right",
+        "assetIds": [
+          "mr-flair-ax"
+        ],
+        "conspicuity": "obvious"
+      }
+    ],
+    "acceptableDiagnoses": [],
+    "differential": [
+      {
+        "diagnosis": "High-grade glioma",
+        "rank": 1,
+        "rationale": "Solitary ring-enhancing lesion with edema in an adult."
+      },
+      {
+        "diagnosis": "Metastasis",
+        "rank": 1,
+        "rationale": "Equally plausible without further history."
+      },
+      {
+        "diagnosis": "Abscess",
+        "rank": 2,
+        "rationale": "Diffusion imaging would help distinguish."
+      }
+    ],
+    "managementExpectations": [
+      "Diffusion-weighted imaging (restricted diffusion favours abscess)",
+      "Perfusion imaging and/or MR spectroscopy",
+      "Search for a primary malignancy if metastasis is suspected"
+    ],
+    "urgency": "urgent",
+    "criticalCommunication": null,
+    "uncertaintyNotes": "Displayed images support a differential only. Do not require a single diagnosis.",
+    "teachingPoints": [
+      "Name the key discriminating investigation rather than guessing a histology."
+    ],
+    "leakCanary": "CANARY-TRUTH-9c04aa"
+  },
+  "openingStageId": "st-mri",
+  "assets": [
+    {
+      "id": "mr-t1c-ax",
+      "kind": "stack",
+      "modality": "MR",
+      "neutralLabel": "MRI brain, axial T1 post-contrast",
+      "sequence": "T1 post-contrast",
+      "plane": "axial",
+      "contrast": "intravenous",
+      "frames": [
+        {
+          "index": 0,
+          "storageKey": "fixtures/fx-ring-lesion/mr-t1c-ax/0.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "c5416426dbf5af14cb806ced206dc845890433e98b1f41ed6994091c9c597e19",
+          "byteSize": 36948,
+          "sliceLocation": null,
+          "instanceNumber": null
+        },
+        {
+          "index": 1,
+          "storageKey": "fixtures/fx-ring-lesion/mr-t1c-ax/1.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "a62993f60c4dfbc3418b41a5be42ad8db6067e5193c0ce69ea895c6ea64134c2",
+          "byteSize": 36958,
+          "sliceLocation": null,
+          "instanceNumber": null
+        },
+        {
+          "index": 2,
+          "storageKey": "fixtures/fx-ring-lesion/mr-t1c-ax/2.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "b306dd660513c512de28d3ad7abf8f6e081788be20e6be0782a73f015d979a22",
+          "byteSize": 36982,
+          "sliceLocation": null,
+          "instanceNumber": null
+        },
+        {
+          "index": 3,
+          "storageKey": "fixtures/fx-ring-lesion/mr-t1c-ax/3.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "7a2f972e62d6cae783c7e1fab8c7d2696e09c87c967212a84e7a1defa6996bed",
+          "byteSize": 38786,
+          "sliceLocation": null,
+          "instanceNumber": null
+        },
+        {
+          "index": 4,
+          "storageKey": "fixtures/fx-ring-lesion/mr-t1c-ax/4.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "96721848bd8418131debce4f514a01405661d97575da1bf35e19dceaa0d105dd",
+          "byteSize": 38798,
+          "sliceLocation": null,
+          "instanceNumber": null
+        },
+        {
+          "index": 5,
+          "storageKey": "fixtures/fx-ring-lesion/mr-t1c-ax/5.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "25c60031ddc6936d7239d47fd3354d27aa26fe6e09204860376d8bb5fa4d10eb",
+          "byteSize": 38828,
+          "sliceLocation": null,
+          "instanceNumber": null
+        },
+        {
+          "index": 6,
+          "storageKey": "fixtures/fx-ring-lesion/mr-t1c-ax/6.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "fa6fc95fad8f80f24fc575b072f9406fe1284d376830f48bd5acba592dd8a713",
+          "byteSize": 38776,
+          "sliceLocation": null,
+          "instanceNumber": null
+        },
+        {
+          "index": 7,
+          "storageKey": "fixtures/fx-ring-lesion/mr-t1c-ax/7.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "0c89bc431e7eda6dcc1f917658e9302b95f8bfa5468f3f5d48e0f7048507c6c4",
+          "byteSize": 37006,
+          "sliceLocation": null,
+          "instanceNumber": null
+        },
+        {
+          "index": 8,
+          "storageKey": "fixtures/fx-ring-lesion/mr-t1c-ax/8.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "26b5ff59ed054dc2adff74090fe88ac45a3fa37c6d28ee8d91df29760d0f0dd3",
+          "byteSize": 36991,
+          "sliceLocation": null,
+          "instanceNumber": null
+        },
+        {
+          "index": 9,
+          "storageKey": "fixtures/fx-ring-lesion/mr-t1c-ax/9.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "a4baac1cc15589c23240c6885ddc1582bf622c2d94fc1146256c90057a1218aa",
+          "byteSize": 37098,
+          "sliceLocation": null,
+          "instanceNumber": null
+        }
+      ],
+      "derivation": {
+        "sourceReferenceId": "fx-src",
+        "method": "placeholder",
+        "notes": "Schematic placeholder generated by fixtures/src/media.ts.",
+        "preservesDiagnosticContent": false,
+        "burnedInAnnotationsPresent": false
+      },
+      "isPlaceholder": true,
+      "display": {
+        "initialFrameIndex": 0,
+        "initialZoom": "fit",
+        "frameRateFps": 6
+      },
+      "dicom": null,
+      "annotations": []
+    },
+    {
+      "id": "mr-flair-ax",
+      "kind": "stack",
+      "modality": "MR",
+      "neutralLabel": "MRI brain, axial FLAIR",
+      "sequence": "FLAIR",
+      "plane": "axial",
+      "contrast": "none",
+      "frames": [
+        {
+          "index": 0,
+          "storageKey": "fixtures/fx-ring-lesion/mr-flair-ax/0.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "70c91d84edb27e8a76db8c38264e71a18c2ae46f6b6384e4a0bc829302048edd",
+          "byteSize": 36009,
+          "sliceLocation": null,
+          "instanceNumber": null
+        },
+        {
+          "index": 1,
+          "storageKey": "fixtures/fx-ring-lesion/mr-flair-ax/1.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "c594e85883693a40ff7b983be322c8a0ec75f045d3a5988cba75793c3b4a4380",
+          "byteSize": 36038,
+          "sliceLocation": null,
+          "instanceNumber": null
+        },
+        {
+          "index": 2,
+          "storageKey": "fixtures/fx-ring-lesion/mr-flair-ax/2.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "a4ce5bf4670cefaf1257f4cc283326ea265c4ed1e4137868731ef086287d97b7",
+          "byteSize": 36046,
+          "sliceLocation": null,
+          "instanceNumber": null
+        },
+        {
+          "index": 3,
+          "storageKey": "fixtures/fx-ring-lesion/mr-flair-ax/3.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "3a8526e083339abbfa96122bcba9263e5e82afca2a399341c2f93f8faaddc94f",
+          "byteSize": 38275,
+          "sliceLocation": null,
+          "instanceNumber": null
+        },
+        {
+          "index": 4,
+          "storageKey": "fixtures/fx-ring-lesion/mr-flair-ax/4.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "417bc07249bd3a973ad45aaa449c8b876c7c567659b6a833c8bb5bb6429a6def",
+          "byteSize": 38299,
+          "sliceLocation": null,
+          "instanceNumber": null
+        },
+        {
+          "index": 5,
+          "storageKey": "fixtures/fx-ring-lesion/mr-flair-ax/5.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "a5844e44eb5ec5d27db345141e73f6614915c70161e294330e2dc0f9d22d753b",
+          "byteSize": 38328,
+          "sliceLocation": null,
+          "instanceNumber": null
+        },
+        {
+          "index": 6,
+          "storageKey": "fixtures/fx-ring-lesion/mr-flair-ax/6.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "c855ad2a7bf46ddb10b0fa247cfe755545f826503eadd62a9f30bcf870b044b7",
+          "byteSize": 38283,
+          "sliceLocation": null,
+          "instanceNumber": null
+        },
+        {
+          "index": 7,
+          "storageKey": "fixtures/fx-ring-lesion/mr-flair-ax/7.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "c6cf316c4eb6306d01ec3a0c1fbf1a568af7e2f4b57eb632ebda49f4c8b3508c",
+          "byteSize": 36079,
+          "sliceLocation": null,
+          "instanceNumber": null
+        },
+        {
+          "index": 8,
+          "storageKey": "fixtures/fx-ring-lesion/mr-flair-ax/8.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "f51fd5fd01226a9afcc0ac4555076b36ac9f2d132e57251f0069a973123c14ea",
+          "byteSize": 36064,
+          "sliceLocation": null,
+          "instanceNumber": null
+        },
+        {
+          "index": 9,
+          "storageKey": "fixtures/fx-ring-lesion/mr-flair-ax/9.png",
+          "mimeType": "image/png",
+          "width": 512,
+          "height": 512,
+          "sha256": "62a95cf8ec4841f45e9e3265572a409444ca3dbdb6daba25070261fdba9f07fa",
+          "byteSize": 36119,
+          "sliceLocation": null,
+          "instanceNumber": null
+        }
+      ],
+      "derivation": {
+        "sourceReferenceId": "fx-src",
+        "method": "placeholder",
+        "notes": "Schematic placeholder generated by fixtures/src/media.ts.",
+        "preservesDiagnosticContent": false,
+        "burnedInAnnotationsPresent": false
+      },
+      "isPlaceholder": true,
+      "display": {
+        "initialFrameIndex": 0,
+        "initialZoom": "fit",
+        "frameRateFps": 6
+      },
+      "dicom": null,
+      "annotations": []
+    }
+  ],
+  "viewportPresets": [
+    {
+      "id": "vp-pair",
+      "layout": "side_by_side",
+      "panes": [
+        {
+          "assetId": "mr-t1c-ax",
+          "frameIndex": null,
+          "zoom": "fit"
+        },
+        {
+          "assetId": "mr-flair-ax",
+          "frameIndex": null,
+          "zoom": "fit"
+        }
+      ],
+      "containsLesionCue": false
+    }
+  ],
+  "stages": [
+    {
+      "id": "st-mri",
+      "ordinal": 0,
+      "label": "MRI brain",
+      "candidateHistory": "A 54-year-old presents with three weeks of headache and new left-hand clumsiness. (Fictional development case — not a patient.)",
+      "assetIds": [
+        "mr-t1c-ax",
+        "mr-flair-ax"
+      ],
+      "viewportPresetIds": [
+        "vp-pair"
+      ],
+      "defaultViewportPresetId": "vp-pair",
+      "allowedActions": [
+        "viewer.scroll",
+        "viewer.zoom_pan",
+        "viewer.brightness_contrast",
+        "viewer.compare",
+        "viewer.cine",
+        "examiner.select_series",
+        "examiner.set_viewport",
+        "examiner.request_stage_reveal",
+        "examiner.deliver_question",
+        "examiner.deliver_fact_reply",
+        "examiner.advance_case"
+      ],
+      "allowedQuestionIds": [
+        "q-open",
+        "q-ddx",
+        "q-next"
+      ],
+      "approvedFactReplies": [
+        {
+          "id": "fr-dwi",
+          "triggerDescription": "candidate asks for diffusion-weighted imaging",
+          "triggerPatterns": [
+            "diffusion",
+            "dwi",
+            "adc"
+          ],
+          "replyText": "Diffusion-weighted images are not available for this case.",
+          "kind": "unavailable",
+          "revealsStageId": null,
+          "suppliesElementIds": [],
+          "promptClass": "neutral"
+        },
+        {
+          "id": "fr-fever",
+          "triggerDescription": "candidate asks about fever, infection or immune status",
+          "triggerPatterns": [
+            "fever",
+            "infection",
+            "immunocompromised",
+            "immune",
+            "white count"
+          ],
+          "replyText": "There is no fever, and the white cell count is normal.",
+          "kind": "information",
+          "revealsStageId": null,
+          "suppliesElementIds": [],
+          "promptClass": "neutral"
+        },
+        {
+          "id": "fr-cancer",
+          "triggerDescription": "candidate asks about a history of cancer",
+          "triggerPatterns": [
+            "cancer",
+            "malignancy",
+            "primary",
+            "oncologic"
+          ],
+          "replyText": "There is no known history of cancer.",
+          "kind": "information",
+          "revealsStageId": null,
+          "suppliesElementIds": [],
+          "promptClass": "neutral"
+        }
+      ],
+      "transitions": [],
+      "assessableRubricElementIds": [
+        "r-lesion",
+        "r-laterality",
+        "r-ddx",
+        "r-next",
+        "r-no-overcommit"
+      ],
+      "examinerNotes": "This case supports a differential only. Ask for the differential and the most useful next investigation.",
+      "revealAnnouncement": null
+    }
+  ],
+  "questions": [
+    {
+      "id": "q-open",
+      "text": "Please describe the findings and give your interpretation.",
+      "purpose": "opening",
+      "promptClass": "neutral",
+      "targetElementIds": [],
+      "suppliesElementIds": [],
+      "modes": [
+        "exam",
+        "practice"
+      ],
+      "order": 0,
+      "skipIfAlreadyAddressed": null,
+      "addressedPatterns": []
+    },
+    {
+      "id": "q-ddx",
+      "text": "What is your differential diagnosis?",
+      "purpose": "standard",
+      "promptClass": "standard_question",
+      "targetElementIds": [
+        "r-ddx",
+        "r-no-overcommit"
+      ],
+      "suppliesElementIds": [],
+      "modes": [
+        "exam",
+        "practice"
+      ],
+      "order": 1,
+      "skipIfAlreadyAddressed": "the candidate has already given a differential",
+      "addressedPatterns": [
+        "glioma",
+        "glioblastoma",
+        "metasta",
+        "abscess"
+      ]
+    },
+    {
+      "id": "q-next",
+      "text": "Which further imaging would help most, and why?",
+      "purpose": "standard",
+      "promptClass": "standard_question",
+      "targetElementIds": [
+        "r-next"
+      ],
+      "suppliesElementIds": [],
+      "modes": [
+        "exam",
+        "practice"
+      ],
+      "order": 2,
+      "skipIfAlreadyAddressed": null,
+      "addressedPatterns": []
+    }
+  ],
+  "rubric": {
+    "versionId": "fx-ring-lesion-rubric@v1",
+    "domains": [
+      {
+        "id": "observation",
+        "description": "Detection and description of findings, including pertinent negatives and localization.",
+        "anchors": [
+          {
+            "level": "unsafe",
+            "descriptor": "Misses or misstates findings in a way that could cause harm (e.g. wrong side, calls an abnormal study normal)."
+          },
+          {
+            "level": "below_expected",
+            "descriptor": "Identifies some findings but misses important ones or describes them inaccurately."
+          },
+          {
+            "level": "meets_expected",
+            "descriptor": "Identifies the key findings and important pertinent negatives with accurate localization."
+          },
+          {
+            "level": "strong",
+            "descriptor": "Systematic, accurate description including subtle findings, efficiently prioritized."
+          },
+          {
+            "level": "exceptional",
+            "descriptor": "Complete, precise and efficient description that anticipates the clinical question."
+          }
+        ]
+      },
+      {
+        "id": "interpretation",
+        "description": "Synthesis of findings and history into a leading diagnosis and prioritized differential.",
+        "anchors": [
+          {
+            "level": "unsafe",
+            "descriptor": "Commits to a diagnosis that is wrong in a way that could lead to harmful management."
+          },
+          {
+            "level": "below_expected",
+            "descriptor": "Leading diagnosis missing or poorly supported; differential unfocused."
+          },
+          {
+            "level": "meets_expected",
+            "descriptor": "Reasonable leading diagnosis supported by the findings, with a relevant differential."
+          },
+          {
+            "level": "strong",
+            "descriptor": "Well-reasoned, prioritized differential with discriminating features."
+          },
+          {
+            "level": "exceptional",
+            "descriptor": "Expert synthesis integrating all sequences and history concisely."
+          }
+        ]
+      },
+      {
+        "id": "management",
+        "description": "Next steps, additional imaging, and recognition of urgency.",
+        "anchors": [
+          {
+            "level": "unsafe",
+            "descriptor": "Recommends harmful or dangerously delayed management, or fails to recognize an emergency."
+          },
+          {
+            "level": "below_expected",
+            "descriptor": "Next steps incomplete or poorly prioritized."
+          },
+          {
+            "level": "meets_expected",
+            "descriptor": "Appropriate next steps with correct urgency."
+          },
+          {
+            "level": "strong",
+            "descriptor": "Specific, prioritized recommendations with rationale."
+          },
+          {
+            "level": "exceptional",
+            "descriptor": "Comprehensive, efficient plan anticipating downstream decisions."
+          }
+        ]
+      },
+      {
+        "id": "communication",
+        "description": "Clear, organized presentation and appropriate consultation.",
+        "anchors": [
+          {
+            "level": "unsafe",
+            "descriptor": "Fails to communicate a critical result through an appropriate direct channel."
+          },
+          {
+            "level": "below_expected",
+            "descriptor": "Disorganized or incomplete communication; consultation unclear."
+          },
+          {
+            "level": "meets_expected",
+            "descriptor": "Clear communication with appropriate consultation."
+          },
+          {
+            "level": "strong",
+            "descriptor": "Concise, well-organized and prioritized communication."
+          },
+          {
+            "level": "exceptional",
+            "descriptor": "Exemplary consultant-level communication."
+          }
+        ]
+      }
+    ],
+    "elements": [
+      {
+        "id": "r-lesion",
+        "domain": "observation",
+        "construct": "Describes a solitary ring-enhancing lesion with surrounding edema.",
+        "acceptedConcepts": [
+          "ring-enhancing lesion",
+          "rim-enhancing mass",
+          "surrounding vasogenic edema"
+        ],
+        "acceptableAlternatives": [
+          "peripherally enhancing lesion"
+        ],
+        "incorrectOrUnsafeClaims": [
+          "states there is no lesion"
+        ],
+        "requiredAssetIds": [
+          "mr-t1c-ax"
+        ],
+        "opportunityRule": {
+          "kind": "from_stage_assets",
+          "stageId": "st-mri",
+          "questionIds": [],
+          "requireAllAssetsRendered": false,
+          "minExposureSeconds": 20
+        },
+        "promptingPolicy": {
+          "spontaneousExpected": true,
+          "standardQuestionIds": [],
+          "targetedProbeIds": [],
+          "rescueIds": [],
+          "credit": {
+            "spontaneous": "full",
+            "standard_question": "full",
+            "targeted_probe": "partial",
+            "rescue": "none",
+            "examiner_supplied": "none"
+          }
+        },
+        "severity": "important",
+        "dependencyElementIds": [],
+        "referenceIds": [
+          "fx-src"
+        ],
+        "skills": [
+          "detection",
+          "feature_description"
+        ],
+        "feedbackGuidance": {
+          "whyItMatters": "Enhancement pattern and edema frame the differential.",
+          "strongerResponse": "Describe the enhancement pattern, the edema and mass effect.",
+          "practiceAction": "Describe enhancement pattern, edema and mass effect for every intra-axial lesion."
+        }
+      },
+      {
+        "id": "r-laterality",
+        "domain": "observation",
+        "construct": "Localizes the lesion to the right frontal lobe.",
+        "acceptedConcepts": [
+          "right frontal lobe"
+        ],
+        "acceptableAlternatives": [
+          "right frontal"
+        ],
+        "incorrectOrUnsafeClaims": [
+          "places the lesion in the left hemisphere"
+        ],
+        "requiredAssetIds": [
+          "mr-t1c-ax"
+        ],
+        "opportunityRule": {
+          "kind": "from_stage_assets",
+          "stageId": "st-mri",
+          "questionIds": [],
+          "requireAllAssetsRendered": false,
+          "minExposureSeconds": 20
+        },
+        "promptingPolicy": {
+          "spontaneousExpected": true,
+          "standardQuestionIds": [],
+          "targetedProbeIds": [],
+          "rescueIds": [],
+          "credit": {
+            "spontaneous": "full",
+            "standard_question": "full",
+            "targeted_probe": "partial",
+            "rescue": "none",
+            "examiner_supplied": "none"
+          }
+        },
+        "severity": "important",
+        "dependencyElementIds": [],
+        "referenceIds": [
+          "fx-src"
+        ],
+        "skills": [
+          "localization"
+        ],
+        "feedbackGuidance": {
+          "whyItMatters": "Accurate localization matters for surgical planning and correlation with the deficit.",
+          "strongerResponse": "State the lobe and side and correlate with the left-sided symptom.",
+          "practiceAction": "Correlate the side of the lesion with the clinical deficit aloud."
+        }
+      },
+      {
+        "id": "r-ddx",
+        "domain": "interpretation",
+        "construct": "Gives an appropriate differential including high-grade glioma, metastasis and abscess.",
+        "acceptedConcepts": [
+          "high-grade glioma",
+          "metastasis",
+          "abscess"
+        ],
+        "acceptableAlternatives": [
+          "glioblastoma",
+          "lymphoma (less likely)"
+        ],
+        "incorrectOrUnsafeClaims": [
+          "commits to a single histological diagnosis as certain"
+        ],
+        "requiredAssetIds": [
+          "mr-t1c-ax"
+        ],
+        "opportunityRule": {
+          "kind": "either",
+          "stageId": "st-mri",
+          "questionIds": [
+            "q-ddx"
+          ],
+          "requireAllAssetsRendered": false,
+          "minExposureSeconds": 15
+        },
+        "promptingPolicy": {
+          "spontaneousExpected": true,
+          "standardQuestionIds": [
+            "q-ddx"
+          ],
+          "targetedProbeIds": [],
+          "rescueIds": [],
+          "credit": {
+            "spontaneous": "full",
+            "standard_question": "full",
+            "targeted_probe": "partial",
+            "rescue": "none",
+            "examiner_supplied": "none"
+          }
+        },
+        "severity": "critical",
+        "dependencyElementIds": [
+          "r-lesion"
+        ],
+        "referenceIds": [
+          "fx-src"
+        ],
+        "skills": [
+          "differential_prioritization"
+        ],
+        "feedbackGuidance": {
+          "whyItMatters": "The images cannot establish histology; a balanced differential is the defensible answer.",
+          "strongerResponse": "Offer glioma, metastasis and abscess, and say what would discriminate between them.",
+          "practiceAction": "For image-limited cases, pair each differential item with the test that would confirm or exclude it."
+        }
+      },
+      {
+        "id": "r-next",
+        "domain": "management",
+        "construct": "Recommends diffusion imaging (and/or perfusion or spectroscopy) to narrow the differential.",
+        "acceptedConcepts": [
+          "diffusion-weighted imaging",
+          "perfusion imaging",
+          "MR spectroscopy"
+        ],
+        "acceptableAlternatives": [
+          "advanced MRI"
+        ],
+        "incorrectOrUnsafeClaims": [
+          "recommends no further workup"
+        ],
+        "requiredAssetIds": [],
+        "opportunityRule": {
+          "kind": "either",
+          "stageId": "st-mri",
+          "questionIds": [
+            "q-next"
+          ],
+          "requireAllAssetsRendered": false,
+          "minExposureSeconds": 10
+        },
+        "promptingPolicy": {
+          "spontaneousExpected": true,
+          "standardQuestionIds": [
+            "q-next"
+          ],
+          "targetedProbeIds": [],
+          "rescueIds": [],
+          "credit": {
+            "spontaneous": "full",
+            "standard_question": "full",
+            "targeted_probe": "partial",
+            "rescue": "none",
+            "examiner_supplied": "none"
+          }
+        },
+        "severity": "important",
+        "dependencyElementIds": [],
+        "referenceIds": [
+          "fx-src"
+        ],
+        "skills": [
+          "additional_imaging"
+        ],
+        "feedbackGuidance": {
+          "whyItMatters": "Restricted diffusion strongly favours abscess, which changes management.",
+          "strongerResponse": "Name diffusion imaging first and explain what result would favour abscess.",
+          "practiceAction": "Link each recommended sequence to the question it answers."
+        }
+      },
+      {
+        "id": "r-no-overcommit",
+        "domain": "interpretation",
+        "construct": "Expresses appropriate uncertainty rather than over-committing to one histology.",
+        "acceptedConcepts": [
+          "cannot be distinguished on these images",
+          "differential remains open",
+          "would need further imaging or tissue"
+        ],
+        "acceptableAlternatives": [
+          "leading consideration with stated uncertainty"
+        ],
+        "incorrectOrUnsafeClaims": [
+          "states a single histology as definite"
+        ],
+        "requiredAssetIds": [],
+        "opportunityRule": {
+          "kind": "either",
+          "stageId": "st-mri",
+          "questionIds": [
+            "q-ddx"
+          ],
+          "requireAllAssetsRendered": false,
+          "minExposureSeconds": 10
+        },
+        "promptingPolicy": {
+          "spontaneousExpected": true,
+          "standardQuestionIds": [
+            "q-ddx"
+          ],
+          "targetedProbeIds": [],
+          "rescueIds": [],
+          "credit": {
+            "spontaneous": "full",
+            "standard_question": "full",
+            "targeted_probe": "partial",
+            "rescue": "none",
+            "examiner_supplied": "none"
+          }
+        },
+        "severity": "minor",
+        "dependencyElementIds": [],
+        "referenceIds": [
+          "fx-src"
+        ],
+        "skills": [
+          "communication",
+          "integration"
+        ],
+        "feedbackGuidance": {
+          "whyItMatters": "Calibrated uncertainty is part of safe reporting.",
+          "strongerResponse": "Say explicitly what the images can and cannot establish.",
+          "practiceAction": "Add one sentence on diagnostic certainty to every synthesis."
+        }
+      }
+    ],
+    "globalRules": {
+      "criticalUnsafeCap": "unsafe",
+      "criticalOmissionCap": "below_expected",
+      "withholdIfUncertainCriticalOrImportant": 2,
+      "anchors": [
+        {
+          "level": "unsafe",
+          "descriptor": "Poor or potentially unsafe performance on the case."
+        },
+        {
+          "level": "below_expected",
+          "descriptor": "Below the satisfactory standard: important gaps."
+        },
+        {
+          "level": "meets_expected",
+          "descriptor": "Satisfactory: key findings, reasonable diagnosis, appropriate management."
+        },
+        {
+          "level": "strong",
+          "descriptor": "Good: reasonable, well-presented analysis with few knowledge gaps."
+        },
+        {
+          "level": "exceptional",
+          "descriptor": "Outstanding: complete, efficient, expert-level performance."
+        }
+      ]
+    }
+  },
+  "referenceResponses": [
+    {
+      "id": "ref-concise",
+      "kind": "concise_reference",
+      "text": "There is a solitary ring-enhancing lesion in the right frontal lobe with surrounding vasogenic edema, correlating with the left-hand symptoms. The differential includes high-grade glioma, metastasis and abscess; these cannot be distinguished reliably on these images. Diffusion-weighted imaging would help most, since restricted diffusion would favour abscess; perfusion imaging or spectroscopy could further support a neoplasm.",
+      "coversElementIds": [
+        "r-lesion",
+        "r-laterality",
+        "r-ddx",
+        "r-next",
+        "r-no-overcommit"
+      ]
+    }
+  ],
+  "practice": {
+    "hints": [
+      {
+        "id": "h-dwi",
+        "elementIds": [
+          "r-next"
+        ],
+        "level": "nudge",
+        "text": "Which sequence best separates abscess from tumour?"
+      }
+    ],
+    "workedExample": null
+  },
+  "ownerApproval": null,
+  "publicationStatus": "draft",
+  "changeLog": []
+}
