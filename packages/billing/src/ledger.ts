@@ -50,9 +50,12 @@ export function canStart(status: EntitlementStatus): boolean {
 
 export async function usageSummary(db: DbOrTx, userId: string): Promise<UsageSummary> {
   const rows = await db
-    .select({ kind: usageLedger.kind, minutes: usageLedger.minutes, sessionId: usageLedger.sessionId })
+    .select({ kind: usageLedger.kind, minutes: usageLedger.minutes, sessionId: usageLedger.sessionId, createdAt: usageLedger.createdAt })
     .from(usageLedger)
     .where(eq(usageLedger.userId, userId));
+  // The current period starts at the most recent allowance; earlier leftovers were expired then.
+  const lastAllot = rows.filter((r) => r.kind === "allot").sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
+  const period = lastAllot ? summarize(rows.filter((r) => r.createdAt.getTime() >= lastAllot.createdAt.getTime() && r.kind !== "expire")) : null;
   const [ent] = await db.select().from(entitlements).where(eq(entitlements.userId, userId));
   const s = summarize(rows);
   const status = (ent?.status ?? "none") as EntitlementStatus;
@@ -77,6 +80,7 @@ export async function usageSummary(db: DbOrTx, userId: string): Promise<UsageSum
     demoCasesRemaining: ent?.demoCasesRemaining ?? 1,
     canStartPaidStation: canStart(status) && s.available > 0,
     blockingReason,
+    currentPeriod: lastAllot && period ? { startedAt: lastAllot.createdAt.toISOString(), allottedMinutes: period.allotted, consumedMinutes: period.consumed, adjustedMinutes: period.adjusted } : null,
   };
 }
 

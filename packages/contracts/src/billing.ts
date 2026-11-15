@@ -62,6 +62,15 @@ export const UsageSummary = z.strictObject({
   demoCasesRemaining: z.number().int().min(0),
   canStartPaidStation: z.boolean(),
   blockingReason: z.string().nullable(),
+  /** Totals since the most recent period allowance (null before the first allowance). */
+  currentPeriod: z
+    .strictObject({
+      startedAt: IsoDateTime,
+      allottedMinutes: z.number().int(),
+      consumedMinutes: z.number().int(),
+      adjustedMinutes: z.number().int(),
+    })
+    .nullable(),
 });
 export type UsageSummary = z.infer<typeof UsageSummary>;
 

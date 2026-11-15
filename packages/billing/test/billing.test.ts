@@ -110,6 +110,9 @@ describe("subscription lifecycle → entitlement", () => {
     await deliver(subEvent("evt_renew_dup_content", "customer.subscription.updated", 401, subscription("sub_A", "cus_A", "active", t1)));
     s = await usageSummary(db, userId);
     expect(s.availableMinutes).toBe(120);
+    // Per-period totals cover only the current allowance; lifetime totals include both.
+    expect(s.currentPeriod).toMatchObject({ allottedMinutes: 120, consumedMinutes: 0 });
+    expect(s.allottedMinutes).toBe(240);
     expect(s.allottedMinutes).toBe(240);
 
     // Deletion ends access.

@@ -188,6 +188,12 @@ export function BillingView({ checkout }: { checkout: string | null }) {
             <dl className="kv">
               <dt>Reserved now</dt>
               <dd>{usage.reservedMinutes}</dd>
+              {usage.currentPeriod && (
+                <>
+                  <dt>This period (since {formatDate(usage.currentPeriod.startedAt)})</dt>
+                  <dd>{usage.currentPeriod.consumedMinutes} used of {usage.currentPeriod.allottedMinutes + usage.currentPeriod.adjustedMinutes}</dd>
+                </>
+              )}
               <dt>Allotted to date</dt>
               <dd>{usage.allottedMinutes}</dd>
               <dt>Used to date</dt>

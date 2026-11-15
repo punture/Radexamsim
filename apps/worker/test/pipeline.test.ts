@@ -76,10 +76,14 @@ describe("worker: assessment → debrief → learning plan", () => {
     // Timing is adjustable and progress is recorded without editing the generated plan.
     const before = (await http.req("GET", "/api/learning/plan")).json;
     expect(before.pace).toBe("standard");
-    const spaced = before.plan.items.find((i: { suggestedAfterDays: number }) => i.suggestedAfterDays > 1);
     expect((await http.req("PUT", "/api/learning/preferences", { pace: "relaxed" })).status).toBe(200);
     const relaxed = (await http.req("GET", "/api/learning/plan")).json;
-    expect(relaxed.plan.items.find((i: { id: string }) => i.id === spaced.id).suggestedAfterDays).toBe(spaced.suggestedAfterDays * 2);
+    expect(relaxed.pace).toBe("relaxed");
+    // Plans differ with the randomly assembled cases; the scaling rule holds for every item.
+    for (const it of before.plan.items as { id: string; suggestedAfterDays: number }[]) {
+      const r = (relaxed.plan.items as { id: string; suggestedAfterDays: number }[]).find((x) => x.id === it.id)!;
+      expect(r.suggestedAfterDays).toBe(it.suggestedAfterDays === 0 ? 0 : Math.max(1, Math.round(it.suggestedAfterDays * 2)));
+    }
     const first = before.plan.items[0];
     expect((await http.req("POST", `/api/learning/plan/items/${first.id}/status`, { status: "completed" })).status).toBe(200);
     expect((await http.req("GET", "/api/learning/plan")).json.plan.items[0].status).toBe("completed");

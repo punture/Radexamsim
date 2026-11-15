@@ -69,7 +69,6 @@ Automated test totals at this commit: **110 vitest tests in 10 files**, **4 Play
 - Live sessions are held in API memory, so horizontal scaling needs sticky routing. Restart recovery (platform pause, then resume on reconnect) is tested.
 - Exam profiles are provisional: official pages could not be fetched, so the settings come from search snippets.
 - Privacy and terms pages are drafts, pending owner and legal review.
-- Usage totals shown to learners are lifetime, not per billing period.
 - Owner console browser coverage is a smoke test. The approve/publish/withdraw actions are covered at the API level, not by clicking through the UI.
 
 ## Real dependencies (what unblocks the next steps)
