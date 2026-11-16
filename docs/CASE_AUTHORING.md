@@ -35,17 +35,25 @@ Source decks, images and DICOM go into **quarantine**, never straight into the p
 Nothing from quarantine may be sent to an external AI provider. External processing is allowed per case, only after you record the privacy clearance and switch on `externalAiProcessingAllowed` for that case.
 
 **Recommended intake: on your own computer.** Box Drive and OneDrive already sync your
-case folders locally. With the repository cloned on that computer, run:
+case folders locally. With the repository cloned on that computer, run (macOS):
 
 ```bash
 pnpm intake "$HOME/Library/CloudStorage/Box-Box/Neuro Oral Simulator - Intake batch 1"
 ```
 
+On Windows, run it inside WSL (README, "On Windows"). Box Drive's `C:\Users\<you>\Box` folder appears there as `/mnt/c/Users/<you>/Box`:
+
+```bash
+pnpm intake "/mnt/c/Users/<you>/Box/Neuro Oral Simulator - Intake batch 1"
+```
+
+If WSL can't read the files there, use Box Drive's *Make Available Offline* option on the folder, or copy the folder to an ordinary Windows folder first.
+
 This takes a folder with one subfolder per case, or a zip. No cloud tokens are needed, and raw
 images never leave your machine. The command:
 
 1. quarantines the files;
-2. screens them, using OCR if `tesseract` is installed (`brew install tesseract` on macOS);
+2. screens them, using OCR if `tesseract` is installed (`brew install tesseract` on macOS, `sudo apt install tesseract-ocr` on Ubuntu or WSL);
 3. builds one draft package per case folder;
 4. imports the clean ones as drafts into the app running on that computer.
 

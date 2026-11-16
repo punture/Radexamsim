@@ -3,8 +3,9 @@
 #
 #   pnpm intake "<path to a folder with one subfolder per case, or a .zip>" [batch-name]
 #
-# Example with Box Drive on macOS:
-#   pnpm intake "$HOME/Library/CloudStorage/Box-Box/Neuro Oral Simulator - Intake batch 1"
+# Examples with Box Drive:
+#   macOS:          pnpm intake "$HOME/Library/CloudStorage/Box-Box/Neuro Oral Simulator - Intake batch 1"
+#   Windows (WSL):  pnpm intake "/mnt/c/Users/<you>/Box/Neuro Oral Simulator - Intake batch 1"
 #
 # Steps:
 #   1. Copy the raw files into a private, git-ignored quarantine folder.
@@ -17,13 +18,14 @@ cd "$(dirname "$0")/.."
 SRC="${1:?usage: pnpm intake <case-folder-or-zip> [batch-name]}"
 BATCH="quarantine/${2:-batch-$(date +%Y%m%d-%H%M%S)}"
 PY=tools/ingestion/.venv/bin/python
-if [ ! -x "$PY" ]; then
+if ! "$PY" -I -c 'import ingest' >/dev/null 2>&1; then
   echo "Setting up the ingestion tool's Python environment (one time)..."
-  python3 -m venv tools/ingestion/.venv
+  # Recreate a venv that an earlier failed attempt left without pip (Ubuntu before python3-venv).
+  "$PY" -I -m pip --version >/dev/null 2>&1 || python3 -m venv --clear tools/ingestion/.venv
   "$PY" -m pip install -q -r tools/ingestion/requirements.txt
   "$PY" -m pip install -q --no-deps -e tools/ingestion
 fi
-command -v tesseract >/dev/null 2>&1 || echo "Note: OCR (tesseract) is not installed, so burned-in text is NOT checked. Install it first (macOS: brew install tesseract)."
+command -v tesseract >/dev/null 2>&1 || echo "Note: OCR (tesseract) is not installed, so burned-in text is NOT checked. Install it first (macOS: brew install tesseract; Ubuntu or WSL: sudo apt install tesseract-ocr)."
 # Case ids are unique per batch (e.g. batch-20261115-1012-03), so batches never collide.
 PREFIX="$(basename "$BATCH" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9-' '-' | sed -E 's/-+/-/g; s/^-|-$//g' | cut -c1-60)"
 "$PY" -I tools/ingestion/scripts/intake_by_folder.py --src "$SRC" --batch "$BATCH" --case-prefix "$PREFIX"

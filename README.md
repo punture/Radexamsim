@@ -13,6 +13,16 @@ A browser-based simulator for spoken neuroradiology oral-exam practice. An AI ex
 - Chromium for end-to-end tests. The pinned Playwright falls back to `/opt/pw-browsers/chromium` when present.
 - Optional: Python ≥ 3.11 for `tools/ingestion` (quarantine and de-identification of source material)
 
+### On Windows
+
+Use WSL 2 with Ubuntu 24.04, the system the project is tested on. Keep the project inside Ubuntu, for example in `~/radexamsim` rather than under `/mnt/c`. In Ubuntu, run:
+
+```bash
+sudo apt update && sudo apt install -y postgresql-16 python3-venv tesseract-ocr
+```
+
+Install Node 22 with nvm or NodeSource, because Ubuntu's own `nodejs` package is too old. Then follow the quick start. The first `pnpm db:start` prints a one-time `sudo` command that creates the development database role. Open the app in a Windows browser at http://localhost:3000.
+
 ## Quick start (local development)
 
 ```bash
