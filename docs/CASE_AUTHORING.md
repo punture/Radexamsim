@@ -41,19 +41,19 @@ case folders locally. With the repository cloned on that computer, run (macOS):
 pnpm intake "$HOME/Library/CloudStorage/Box-Box/Neuro Oral Simulator - Intake batch 1"
 ```
 
-On Windows, run it inside WSL (README, "On Windows"). Box Drive's `C:\Users\<you>\Box` folder appears there as `/mnt/c/Users/<you>/Box`:
+On Windows, run it in PowerShell or Command Prompt, in the repository folder (README, "On Windows"). Box Drive's folder works directly:
 
-```bash
-pnpm intake "/mnt/c/Users/<you>/Box/Neuro Oral Simulator - Intake batch 1"
+```powershell
+pnpm intake "C:\Users\<you>\Box\Neuro Oral Simulator - Intake batch 1"
 ```
 
-If WSL can't read the files there, use Box Drive's *Make Available Offline* option on the folder, or copy the folder to an ordinary Windows folder first.
+In WSL, the same folder appears as `/mnt/c/Users/<you>/Box/...`. If WSL can't read the files there, use Box Drive's *Make Available Offline* option on the folder, or copy the folder to an ordinary Windows folder first.
 
 This takes a folder with one subfolder per case, or a zip. No cloud tokens are needed, and raw
 images never leave your machine. The command:
 
 1. quarantines the files;
-2. screens them, using OCR if `tesseract` is installed (`brew install tesseract` on macOS, `sudo apt install tesseract-ocr` on Ubuntu or WSL);
+2. screens them, using OCR if `tesseract` is installed (`brew install tesseract` on macOS, `sudo apt install tesseract-ocr` on Ubuntu or WSL, `winget install UB-Mannheim.TesseractOCR` on Windows);
 3. builds one draft package per case folder;
 4. imports the clean ones as drafts into the app running on that computer.
 

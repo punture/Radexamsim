@@ -51,7 +51,8 @@ def safe_unzip(zip_path: Path, dest: Path) -> None:
 
 
 def run(py: str, *args: str) -> None:
-    r = subprocess.run([py, "-I", "-m", "ingest", "-q", *args], capture_output=True, text=True)
+    # -X utf8: file names and messages are UTF-8 on every platform (Windows defaults to its code page).
+    r = subprocess.run([py, "-X", "utf8", "-I", "-m", "ingest", "-q", *args], capture_output=True, encoding="utf-8", errors="replace")
     if r.returncode != 0:
         # The tool prints only exception types unless --debug; still keep output local.
         sys.stderr.write(r.stderr[-2000:])
@@ -86,8 +87,8 @@ def main() -> None:
     run(py, "inventory", str(q), "--out", str(inv))
     run(py, "extract", str(q), "--out", str(der), "--force")
 
-    manifest = json.loads((q / "manifest.json").read_text())
-    inventory = json.loads((inv / "inventory.json").read_text())
+    manifest = json.loads((q / "manifest.json").read_text(encoding="utf-8"))
+    inventory = json.loads((inv / "inventory.json").read_text(encoding="utf-8"))
     paths_by_source = {sha[:16]: e["originalRelativePaths"] for sha, e in manifest["files"].items()}
 
     # Common leading folders (e.g. the zip's root folder) are not case folders.
@@ -120,7 +121,7 @@ def main() -> None:
         for f in families_by_case[folder]:
             args += ["--family", f]
         run(py, *args)
-        manifest_out = json.loads((pkg / "case-import.json").read_text())
+        manifest_out = json.loads((pkg / "case-import.json").read_text(encoding="utf-8"))
         sev: dict[str, int] = defaultdict(int)
         for f in manifest_out["privacyFindings"]:
             sev[f["severity"]] += 1
@@ -128,7 +129,7 @@ def main() -> None:
                         "assets": len(manifest_out["assets"]), "findings": dict(sev), "privacyStatus": manifest_out["privacyStatus"],
                         "zip": str(pkg) + ".zip"})
 
-    (batch / "intake-summary.json").write_text(json.dumps({"cases": summary, "familiesSpanningFolders": spanning}, indent=2) + "\n")
+    (batch / "intake-summary.json").write_text(json.dumps({"cases": summary, "familiesSpanningFolders": spanning}, indent=2) + "\n", encoding="utf-8")
     print(f"{'case':<5} {'label':<34} {'imgs':>4} {'high':>4} {'med':>4}  status")
     for s in summary:
         print(f"{s['case']:<5} {s['label'][:34]:<34} {s['images']:>4} {s['findings'].get('high', 0):>4} {s['findings'].get('medium', 0):>4}  {s['privacyStatus']}{'  (digits removed from label)' if s['labelHadDigits'] else ''}")

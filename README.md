@@ -11,17 +11,21 @@ A browser-based simulator for spoken neuroradiology oral-exam practice. An AI ex
 - Node.js ≥ 22 and pnpm 10 (`corepack enable`)
 - PostgreSQL 16, local or via Docker (`pnpm db:start` handles both)
 - Chromium for end-to-end tests. The pinned Playwright falls back to `/opt/pw-browsers/chromium` when present.
-- Optional: Python ≥ 3.11 for `tools/ingestion` (quarantine and de-identification of source material)
+- Optional: Python ≥ 3.13 and `tesseract` for `tools/ingestion` (quarantine and de-identification of source material; OCR for burned-in text)
 
 ### On Windows
 
-Use WSL 2 with Ubuntu 24.04, the system the project is tested on. Keep the project inside Ubuntu, for example in `~/radexamsim` rather than under `/mnt/c`. In Ubuntu, run:
+The project runs natively on Windows 10 and 11, without WSL. On Windows, `pnpm dev`, `pnpm db:start`, `pnpm db:stop` and `pnpm intake` run Node versions of the shell scripts (`scripts/windows/`, chosen by `scripts/platform.mjs`); macOS and Linux keep using the shell scripts. Keep the repository under your user profile and outside OneDrive, Box or Dropbox, because intake copies raw case files into its git-ignored `quarantine\` folder. Install:
 
-```bash
-sudo apt update && sudo apt install -y postgresql-16 python3-venv tesseract-ocr
-```
+- Node.js 22 or newer, then `npm install -g pnpm@10.28.0`.
+- PostgreSQL 16: unpack the `pgsql\bin`, `pgsql\lib` and `pgsql\share` folders of the [EDB Windows binaries zip](https://www.enterprisedb.com/download-postgresql-binaries) into `%LOCALAPPDATA%\Programs\PostgreSQL\16`, or set `PG_BIN` to another PostgreSQL 16 `bin` folder. `pnpm db:start` then runs a private development cluster in `var\postgres-16`. It listens on 127.0.0.1 only and keeps running in the background until `pnpm db:stop` or sign-out. If a PostgreSQL service already listens on port 5432, `pnpm db:start` uses it and prints the one-time `psql` command that creates the development role.
+- For case intake: Python 3.13 or newer (`winget install Python.Python.3.13`) and Tesseract OCR (`winget install UB-Mannheim.TesseractOCR`). The first `pnpm intake` sets up the tool's virtual environment.
 
-Install Node 22 with nvm or NodeSource, because Ubuntu's own `nodejs` package is too old. Then follow the quick start. The first `pnpm db:start` prints a one-time `sudo` command that creates the development database role. Open the app in a Windows browser at http://localhost:3000.
+In PowerShell, if running scripts is disabled (the Windows default), `pnpm` fails to load `pnpm.ps1`; type `pnpm.cmd` instead (for example `pnpm.cmd dev`), or use Command Prompt.
+
+Windows has no 0700/0600 file modes, so quarantined files get the NTFS permissions of the folder they are in. Not ported to, or not checked on, Windows: `pnpm test:s3` (bash), the live-session load test (`pgrep`) and the end-to-end tests (they call `psql`).
+
+WSL 2 with Ubuntu also works. Keep the project inside Ubuntu (for example `~/radexamsim`, not under `/mnt/c`), run `sudo apt install -y postgresql-16 python3-venv tesseract-ocr`, install Node 22 with nvm or NodeSource, then follow the quick start. The first `pnpm db:start` prints a one-time `sudo` command that creates the development database role. Intake needs Python 3.13 or newer; Ubuntu 24.04's own Python is 3.12.
 
 ## Quick start (local development)
 
@@ -30,7 +34,7 @@ pnpm install
 pnpm db:start        # PostgreSQL 16 via Docker or a local cluster; creates sim_dev and sim_test
 pnpm db:migrate
 pnpm db:seed         # fictional fixture cases, placeholder media, dev accounts, content requests
-pnpm dev             # API :4000, worker, web :3000 (scripts/dev.sh)
+pnpm dev             # API :4000, worker, web :3000 (scripts/dev.sh; Windows: scripts/windows/dev.mjs)
 ```
 
 Open http://localhost:3000. Development accounts are created by the seed:
@@ -42,9 +46,9 @@ Open http://localhost:3000. Development accounts are created by the seed:
 
 The owner console requires a second factor. The seed prints a TOTP secret: add it to an authenticator app, or print the current code with `pnpm --filter @sim/api run totp`.
 
-Without model keys, `scripts/dev.sh` enables the **development baseline assessor**. It is a lexical stand-in, labelled "dev baseline (not clinical)" wherever its results appear, and the configuration refuses it in production. Examiner speech uses the browser's speech synthesis. Recognition uses the browser's speech recognition (Chrome), after explicit consent, because it may send audio to the browser vendor.
+Without model keys, `pnpm dev` enables the **development baseline assessor**. It is a lexical stand-in, labelled "dev baseline (not clinical)" wherever its results appear, and the configuration refuses it in production. Examiner speech uses the browser's speech synthesis. Recognition uses the browser's speech recognition (Chrome), after explicit consent, because it may send audio to the browser vendor.
 
-Configuration is in environment variables. Copy `.env.example` to `.env` and adjust it; `scripts/dev.sh` loads `.env` if present. Never commit `.env`.
+Configuration is in environment variables. Copy `.env.example` to `.env` and adjust it; `pnpm dev` loads `.env` if present. Never commit `.env`.
 
 ## Tests and checks
 
@@ -95,7 +99,7 @@ docs                 architecture, API, events, data model, profiles, authoring,
 
 | Symptom | Fix |
 |---|---|
-| `ECONNREFUSED 127.0.0.1:5432` | `pnpm db:start`, then `bash scripts/dev-db.sh status` |
+| `ECONNREFUSED 127.0.0.1:5432` | `pnpm db:start`, then `bash scripts/dev-db.sh status` (Windows: `node scripts/platform.mjs dev-db status`) |
 | Tests fail with "database … does not exist" | The vitest global setup rebuilds the test template on each run; check that the `sim` role has `CREATEDB` (`pnpm db:start` creates it) |
 | Results say "assessment unavailable" | No assessment model is configured and the dev baseline is off. Set `ALLOW_DEV_BASELINE_ASSESSOR=true` for the worker (development only), or configure `LLM_PROVIDER=anthropic` with a key |
 | The microphone prompt never appears | Browsers allow the microphone only on secure origins; use `http://localhost:3000`, not a LAN IP |

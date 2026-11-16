@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import path from "node:path";
 import { createDb, eq, users } from "@sim/db";
 import { loadConfig, ownerEmails } from "./config";
 import { buildDeps } from "./deps";
@@ -30,10 +31,10 @@ let failed = 0;
 for (const f of files) {
   try {
     const r = await importPackage(deps, owner.id, new Uint8Array(readFileSync(f)));
-    console.log(`imported ${f.split("/").pop()} -> ${r.versionId} (draft, ${r.issues.length} validation issue(s) to complete)`);
+    console.log(`imported ${path.basename(f)} -> ${r.versionId} (draft, ${r.issues.length} validation issue(s) to complete)`);
   } catch (e) {
     failed++;
-    console.log(`refused ${f.split("/").pop()}: ${e instanceof HttpError ? `${e.code} — ${e.message}` : (e as Error).message}`);
+    console.log(`refused ${path.basename(f)}:${e instanceof HttpError ? `${e.code} — ${e.message}` : (e as Error).message}`);
   }
 }
 await db.$client.end();
