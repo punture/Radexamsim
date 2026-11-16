@@ -1,6 +1,6 @@
 # Status report
 
-As of 2026-11-15. The build environment is an ephemeral cloud container with no provider credentials and a restricted network. Work is pushed to the project's GitHub repository. The latest work (case intake, load test, S3 storage) is on branch `claude/case-intake-batch-1`, ahead of `main` and not yet merged.
+As of 2026-11-16. The build environment is an ephemeral cloud container with no provider credentials and a restricted network. Work is pushed to the project's GitHub repository. The latest work (case intake, load test, S3 storage) is on branch `claude/case-intake-batch-1`, ahead of `main` and not yet merged.
 
 ## Summary
 
@@ -18,7 +18,7 @@ The owner can import, review, approve, publish, revise, retire and withdraw case
 
 What is **not** yet true:
 
-- there are no approved clinical cases, and no case material has reached the system yet;
+- there are no approved clinical cases. The first batch of real case material was screened on 2026-11-16, and 8 cases are drafts awaiting the owner's authoring and review, held only in a temporary development database;
 - no live AI, speech, auth, payment or storage provider has been exercised;
 - nothing is deployed.
 
@@ -46,7 +46,7 @@ The product must not be offered to paying clinical users in this state.
 | Supabase auth (JWT/JWKS, aal2) | **Simulated**: never connected to a project | Local dev auth is tested |
 | Stripe checkout, portal and webhooks against Stripe | **Simulated**: no test-mode keys | Signature verification tested locally |
 | Python ingestion and de-identification (quarantine, inventory, extraction, DICOM PS3.15 basic-profile subset, packaging) | Implemented, tested on synthetic inputs. Its package was verified against the API import schema and digest checks. Real `tesseract` OCR held back a synthetic image with a burned-in name, record number and date of birth (2026-11-15; the unit tests use a fake `tesseract`). There is no face detection; EMF/WMF cannot be converted | `tools/ingestion/tests` (74 pytest tests) |
-| Case intake: `pnpm intake <folder or zip>` on the owner's computer (quarantine, screening, one draft package per case folder, import of clean packages as drafts) and a Box folder fetcher | Implemented, tested on synthetic folders. **No real case material received yet**: from this cloud environment, Box files cannot be downloaded (the connector has no download tool and the temporary token expired), and OneDrive is not connected | `scripts/intake.sh`, `docs/CASE_AUTHORING.md` §2.1 |
+| Case intake: `pnpm intake <folder or zip>` on the owner's computer (quarantine, screening, one draft package per case folder, import of clean packages as drafts) and a Box folder fetcher | Implemented, tested on synthetic folders. **First real batch, 2026-11-16:** fetched from Box into the cloud session's quarantine with a short-lived developer token (the Box connector has no download tool): 9 case folders, 31 images. 8 passed screening and were imported as drafts. 1 was held back for burned-in text resembling a record number and a date. Every imported draft has at least one image where OCR found text that matched no identifier pattern, so the owner must look at each image before approval. The drafts exist only in that session's development database. OneDrive is not connected | `scripts/intake.sh`, `docs/CASE_AUTHORING.md` §2.1 |
 | S3-compatible private storage driver: one private bucket, server-side encryption, startup check that refuses a publicly readable or listable bucket | Implemented; tested against moto (a local S3 implementation), including the whole API and worker suites on S3. **Not used with a real provider** (no account) | `pnpm test:s3`, `docs/runbooks/STORAGE.md` |
 | Cornerstone3D DICOM stack viewer | **Not implemented** (still/stack image adapter only; awaits suitable de-identified DICOM) | Backlog |
 | Approved clinical cases | **Blocked on owner content**: 0 approved; 10 content-request slots open | Owner console → Coverage |
