@@ -35,8 +35,17 @@ export default function Dashboard() {
           </div>
           <div className="card">
             <h2 style={{ fontSize: "1.05rem" }}>Try the demonstration</h2>
-            <p className="muted">One complete practice case with spoken examiner questions and a debrief.</p>
-            <Link className="btn" href="/app/setup?demo=1">Start demonstration</Link>
+            {usage && usage.demoCasesRemaining === 0 ? (
+              <>
+                <p className="muted">You have used your free demonstration case. Its result is under Recent stations.</p>
+                <Link className="btn" href="/app/setup">Start a station</Link>
+              </>
+            ) : (
+              <>
+                <p className="muted">One complete practice case with spoken examiner questions and a debrief.</p>
+                <Link className="btn" href="/app/setup?demo=1">Start demonstration</Link>
+              </>
+            )}
           </div>
           <div className="card">
             <h2 style={{ fontSize: "1.05rem" }}>Next practice</h2>
