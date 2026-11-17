@@ -77,6 +77,7 @@ These were found by reading and running the code on 2026-11-15. Each must be res
   - `AUTH_PROVIDER=supabase`
   - `AUTH_ENCRYPTION_KEY` does not start with `dev-only`
   - `OWNER_MFA_REQUIRED=true`
+  - `DEV_AUTO_LOGIN=false` (testing mode, which switches sign-in off)
   - `LLM_PROVIDER=anthropic` or `LLM_PROVIDER=gemini` (not `none`)
   - `LLM_FIXTURES_ONLY=false` (the worker refuses it too)
 

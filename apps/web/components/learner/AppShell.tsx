@@ -2,47 +2,57 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { SiteHeader, TestModePill, type NavItem } from "@/components/SiteHeader";
 import { useMe } from "@/lib/useMe";
 import { api } from "@/lib/api";
-import { BRAND } from "@/lib/brand";
 
-const NAV = [
+const LINKS: readonly NavItem[] = [
   ["/app", "Dashboard"],
   ["/app/setup", "New station"],
-  ["/app/plan", "Learning plan"],
   ["/app/progress", "Progress"],
-  ["/app/appeals", "Appeals"],
-  ["/app/billing", "Billing"],
-  ["/app/account", "Account"],
-] as const;
+  ["/app/plan", "Learning plan"],
+];
 
-/** Authenticated learner shell. Authorization is enforced by the API; this only routes. */
+/** Learner shell. Authorization is enforced by the API; this only routes. */
 export function AppShell({ children, bare = false }: { children: React.ReactNode; bare?: boolean }) {
-  const { me } = useMe();
-  const router = useRouter();
   const path = usePathname();
+  // Testing mode: station pages keep whoever started the station (owner previews run there).
+  const { me } = useMe("learner", !path.startsWith("/app/session/"));
+  const router = useRouter();
   useEffect(() => {
     if (me && !me.authenticated) router.replace(`/sign-in?next=${encodeURIComponent(path)}`);
   }, [me, router, path]);
   if (!me || !me.authenticated) return <div className="container page" role="status">Loading…</div>;
   if (bare) return <>{children}</>;
+  const testing = me.devAutoLogin === true;
+  const signOut = async () => {
+    await api("/api/auth/logout", { method: "POST" });
+    router.push("/");
+  };
   return (
     <>
-      <header className="site-header">
-        <div className="container">
-          <Link href="/app" className="brand"><span className="brand-mark" aria-hidden>N</span>{BRAND}</Link>
-          <nav className="nav" aria-label="Learner">
-            {NAV.map(([href, label]) => (
-              <Link key={href} href={href} aria-current={path === href ? "page" : undefined}>{label}</Link>
-            ))}
-            {me.user.role === "owner" && <Link href="/owner">Owner console</Link>}
-          </nav>
-          <div className="row">
-            <span className="muted" style={{ fontSize: "0.88rem" }}>{me.user.email}</span>
-            <button className="btn btn-sm" type="button" onClick={async () => { await api("/api/auth/logout", { method: "POST" }); router.push("/"); }}>Sign out</button>
-          </div>
-        </div>
-      </header>
+      <SiteHeader
+        home="/app"
+        label="Learner"
+        links={LINKS}
+        actions={
+          <>
+            {testing && <TestModePill />}
+            <details className="menu">
+              <summary>Account</summary>
+              <div className="menu-panel">
+                <p className="menu-note">{me.user.email}</p>
+                <Link href="/app/account">Account and consent</Link>
+                <Link href="/app/billing">Billing</Link>
+                <Link href="/app/appeals">Appeals</Link>
+                {(me.user.role === "owner" || testing) && <Link href="/owner">Owner console</Link>}
+                <hr />
+                <button type="button" onClick={signOut}>Sign out</button>
+              </div>
+            </details>
+          </>
+        }
+      />
       <main id="main" className="container page">{children}</main>
     </>
   );

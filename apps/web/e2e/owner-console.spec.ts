@@ -46,18 +46,25 @@ test("owner signs in with a second factor and reviews a case from the human-read
   await page.getByRole("tab", { name: /Checks & critiques/ }).click();
   await expect(page.getByRole("heading", { name: "Automated checks" })).toBeVisible();
 
+  // Coverage, Configuration and Metrics sit under the owner menu's "More".
+  const fromMore = async (name: string) => {
+    const nav = page.getByRole("navigation", { name: "Owner" });
+    await nav.locator("summary", { hasText: "More" }).click();
+    await nav.getByRole("link", { name }).click();
+  };
+
   // Coverage never counts fixtures as clinical cases.
-  await page.getByRole("navigation", { name: "Owner" }).getByRole("link", { name: "Coverage" }).click();
+  await fromMore("Coverage");
   await expect(page.getByText("No clinical cases are published")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Content requests" })).toBeVisible();
 
   // Configuration: kill switches and provisional profiles.
-  await page.getByRole("navigation", { name: "Owner" }).getByRole("link", { name: "Configuration" }).click();
+  await fromMore("Configuration");
   await expect(page.getByRole("heading", { name: "Kill switches" })).toBeVisible();
   await expect(page.getByText("provisional").first()).toBeVisible();
 
   // Metrics render with explicit denominators/notes.
-  await page.getByRole("navigation", { name: "Owner" }).getByRole("link", { name: "Metrics" }).click();
+  await fromMore("Metrics");
   await expect(page.getByRole("heading", { name: "Live examination" })).toBeVisible();
 });
 

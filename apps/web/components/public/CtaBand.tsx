@@ -7,8 +7,8 @@ type CtaLink = { href: string; label: string };
 export function CtaBand({
   title = "Try one case free",
   children,
-  primary = { href: "/sign-up", label: "Start the free demonstration" },
-  secondary = { href: "/demo", label: "What the demonstration includes" },
+  primary = { href: "/app/setup?demo=1", label: "Try a free case" },
+  secondary = null,
 }: {
   title?: string;
   children?: ReactNode;
@@ -18,11 +18,13 @@ export function CtaBand({
   return (
     <section className="section" aria-labelledby="cta-title">
       <div className="container">
-        <div className="card stack" style={{ alignItems: "flex-start" }}>
-          <h2 id="cta-title" style={{ marginBottom: 0 }}>{title}</h2>
-          <p className="muted" style={{ margin: 0, maxWidth: 720 }}>
-            {children ?? "One complete spoken practice case with examiner follow-up questions and an evidence-linked debrief. No payment needed for the demonstration."}
-          </p>
+        <div className="card row-between" style={{ padding: 24 }}>
+          <div className="stack" style={{ gap: 4 }}>
+            <h2 id="cta-title" style={{ margin: 0 }}>{title}</h2>
+            <p className="muted" style={{ margin: 0, maxWidth: 620 }}>
+              {children ?? "One spoken case with examiner questions and feedback. No payment needed."}
+            </p>
+          </div>
           <div className="row">
             <Link className="btn btn-primary btn-lg" href={primary.href}>{primary.label}</Link>
             {secondary && <Link className="btn btn-lg" href={secondary.href}>{secondary.label}</Link>}

@@ -23,6 +23,11 @@ export const ConfigSchema = z.object({
   OWNER_EMAILS: z.string().default("owner@example.test"),
   OWNER_MFA_REQUIRED: bool(true),
   SESSION_TTL_HOURS: z.coerce.number().int().default(12),
+  /**
+   * Development only: sign in automatically as the seeded test learner or test owner (whose
+   * second factor counts as verified), so testing needs no password or code. Refused in production.
+   */
+  DEV_AUTO_LOGIN: bool(false),
 
   /** STORAGE_DRIVER, STORAGE_LOCAL_ROOT and S3_*: shared with the worker (packages/storage). */
   ...StorageEnvSchema.shape,
@@ -77,11 +82,13 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     if (c.AUTH_PROVIDER === "local") problems.push("AUTH_PROVIDER=local is for development only; use managed auth (supabase)");
     if (c.AUTH_ENCRYPTION_KEY.startsWith("dev-only")) problems.push("AUTH_ENCRYPTION_KEY must be set");
     if (!c.OWNER_MFA_REQUIRED) problems.push("OWNER_MFA_REQUIRED must be true in production");
+    if (c.DEV_AUTO_LOGIN) problems.push("DEV_AUTO_LOGIN must be false in production");
     if (c.LLM_PROVIDER === "none") problems.push("an assessment model is required in production (the development baseline is not permitted)");
     if (c.LLM_FIXTURES_ONLY) problems.push("LLM_FIXTURES_ONLY is for development keys; production needs a provider tier that does not reuse submitted content");
     if (problems.length) throw new Error(`Unsafe production configuration:\n - ${problems.join("\n - ")}`);
   }
   if (c.AUTH_PROVIDER === "supabase" && !c.SUPABASE_URL) throw new Error("SUPABASE_URL is required for AUTH_PROVIDER=supabase");
+  if (c.DEV_AUTO_LOGIN && c.AUTH_PROVIDER !== "local") throw new Error("DEV_AUTO_LOGIN requires AUTH_PROVIDER=local");
   const llmProblems = llmSettingsProblems(c, [c.MODEL_DEFAULT, c.MODEL_LIVE_EXAMINER]);
   if (llmProblems.length) throw new Error(llmProblems.join("; "));
   checkStorageEnv(c, c.NODE_ENV);

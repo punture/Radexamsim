@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PublicShell } from "@/components/PublicShell";
 import { CtaBand } from "@/components/public/CtaBand";
+import { IllustrativeFeedback } from "@/components/public/IllustrativeFeedback";
 import { PageIntro } from "@/components/public/PageIntro";
 
 export const metadata: Metadata = {
@@ -148,22 +149,15 @@ export default function Page() {
               <li>No more than three next actions</li>
               <li>A replay of the transcript and the images</li>
             </ul>
+            <p style={{ margin: 0 }}>
+              <strong>Your learning plan</strong> targets repeated, consequential gaps rather than one-off slips, and uses new cases when they are available.
+            </p>
+            <p style={{ margin: 0 }}>
+              <strong>If you disagree</strong>, you can dispute a transcription or a grading decision from your debrief. The original result is preserved, and our clinical owner reviews significant disputes.
+            </p>
             <p className="muted text-sm" style={{ margin: 0 }}>Ratings are practice estimates, not board scores, and we never show a pass probability.</p>
           </div>
-          <div className="stack">
-            <div className="card stack">
-              <h3 style={{ margin: 0 }}>Your learning plan</h3>
-              <p style={{ margin: 0 }}>
-                The plan targets repeated, consequential gaps rather than one-off slips, and uses new cases when they are available. One weak attempt is a signal, not a stable trait.
-              </p>
-            </div>
-            <div className="card stack">
-              <h3 style={{ margin: 0 }}>If you disagree</h3>
-              <p style={{ margin: 0 }}>
-                You can dispute a transcription or a grading decision from your debrief. The original result is preserved, and our clinical owner reviews significant disputes.
-              </p>
-            </div>
-          </div>
+          <IllustrativeFeedback />
         </div>
       </section>
 

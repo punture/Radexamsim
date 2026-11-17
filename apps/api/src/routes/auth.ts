@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { authSessions, consents, eq, users } from "@sim/db";
 import { ownerEmails } from "../config";
+import { DEFAULT_SEED } from "../services/seed";
 import { SESSION_COOKIE } from "../auth/context";
 import { decryptSecret, encryptSecret, hashPassword, newTotpSecret, verifyPassword, verifyTotp } from "../auth/crypto";
 import { createLocalSession, revokeLocalSession } from "../auth/plugin";
@@ -65,6 +66,31 @@ export function authRoutes(app: FastifyInstance, deps: Deps): void {
 
   route(app, {
     method: "POST",
+    url: "/api/auth/dev-login",
+    summary: "Development only (DEV_AUTO_LOGIN): sign in as the seeded test learner or test owner without a password",
+    tags: ["auth"],
+    auth: "public",
+    body: z.object({ as: z.enum(["learner", "owner"]) }),
+    handler: async ({ auth, body, reply }) => {
+      if (!config.DEV_AUTO_LOGIN || !local || config.NODE_ENV === "production") throw new HttpError(404, "not_available", "automatic sign-in is not enabled");
+      // Only the seeded test accounts, never an account someone registered.
+      const email = body.as === "owner" ? DEFAULT_SEED.ownerEmail : DEFAULT_SEED.learnerEmail;
+      const [u] = await db.select().from(users).where(eq(users.email, email));
+      if (!u || u.deletedAt || u.role !== body.as) throw new HttpError(404, "not_seeded", `the test ${body.as} account is missing; run pnpm db:seed`);
+      // Already signed in as this account: keep the session, so parallel requests are not cut off.
+      if (auth?.authSessionId && auth.userId === u.id && (u.role !== "owner" || auth.mfa)) return { userId: u.id, role: u.role };
+      if (auth?.authSessionId) await revokeLocalSession(db, auth.authSessionId);
+      const s = await createLocalSession(db, u.id, config.SESSION_TTL_HOURS);
+      // The test owner's second factor counts as verified, as if the code had been entered.
+      if (u.role === "owner") await db.update(authSessions).set({ mfaVerifiedAt: new Date() }).where(eq(authSessions.id, s.id));
+      reply.setCookie(SESSION_COOKIE, s.token, { ...cookieOpts, expires: s.expiresAt });
+      await audit(db, u.id, "auth.dev_login", "user", u.id);
+      return { userId: u.id, role: u.role };
+    },
+  });
+
+  route(app, {
+    method: "POST",
     url: "/api/auth/logout",
     summary: "Sign out",
     tags: ["auth"],
@@ -83,11 +109,13 @@ export function authRoutes(app: FastifyInstance, deps: Deps): void {
     tags: ["auth"],
     auth: "public",
     handler: async ({ auth }) => {
-      if (!auth) return { authenticated: false as const, authProvider: config.AUTH_PROVIDER };
+      const devAutoLogin = config.DEV_AUTO_LOGIN && local && config.NODE_ENV !== "production";
+      if (!auth) return { authenticated: false as const, authProvider: config.AUTH_PROVIDER, devAutoLogin };
       const [u] = await db.select().from(users).where(eq(users.id, auth.userId));
       return {
         authenticated: true as const,
         authProvider: config.AUTH_PROVIDER,
+        devAutoLogin,
         user: { id: auth.userId, email: auth.email, displayName: u?.displayName ?? null, role: auth.role },
         mfa: { verified: auth.mfa, enrolled: u?.totpEnabled ?? false, requiredForOwner: config.OWNER_MFA_REQUIRED },
       };

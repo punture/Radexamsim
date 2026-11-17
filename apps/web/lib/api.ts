@@ -10,9 +10,11 @@ export class ApiError extends Error {
   }
 }
 
-export async function api<T = unknown>(path: string, init: { method?: string; body?: unknown; signal?: AbortSignal } = {}): Promise<T> {
+type Init = { method?: string; body?: unknown; signal?: AbortSignal };
+
+function send(path: string, init: Init): Promise<Response> {
   const method = init.method ?? (init.body !== undefined ? "POST" : "GET");
-  const res = await fetch(path, {
+  return fetch(path, {
     method,
     credentials: "same-origin",
     headers: { ...(init.body !== undefined ? { "content-type": "application/json" } : {}), ...(method !== "GET" ? { "x-sim-csrf": "1" } : {}) },
@@ -20,6 +22,42 @@ export async function api<T = unknown>(path: string, init: { method?: string; bo
     signal: init.signal,
     cache: "no-store",
   });
+}
+
+const pendingSignIns = new Map<"learner" | "owner", Promise<boolean>>();
+let testingModeOff = false;
+
+/**
+ * Testing mode only (DEV_AUTO_LOGIN): sign in as the test account. Concurrent callers share one
+ * sign-in, so parallel requests cannot revoke each other's session. Resolves false when the API
+ * has testing mode off (remembered, so normal builds make this request at most once).
+ */
+export function autoSignIn(as: "learner" | "owner"): Promise<boolean> {
+  if (testingModeOff) return Promise.resolve(false);
+  let p = pendingSignIns.get(as);
+  if (!p) {
+    p = send("/api/auth/dev-login", { body: { as } })
+      .then((r) => {
+        if (r.status === 404) testingModeOff = true;
+        return r.ok;
+      })
+      .catch(() => false)
+      .finally(() => pendingSignIns.delete(as));
+    pendingSignIns.set(as, p);
+  }
+  return p;
+}
+
+export async function api<T = unknown>(path: string, init: Init = {}): Promise<T> {
+  let res = await send(path, init);
+  // Testing mode: a request sent before the automatic sign-in finished (401), or an owner request
+  // sent while the test learner was still signed in (403), is retried once as the test account
+  // for the part of the site this page belongs to. Outside testing mode nothing is retried.
+  if (typeof window !== "undefined" && !path.startsWith("/api/auth/")) {
+    const ownerPage = window.location.pathname.startsWith("/owner");
+    const retry = res.status === 401 || (res.status === 403 && ownerPage && path.startsWith("/api/owner/"));
+    if (retry && (await autoSignIn(ownerPage ? "owner" : "learner"))) res = await send(path, init);
+  }
   if (res.status === 204) return undefined as T;
   const text = await res.text();
   let data: unknown = null;
@@ -35,6 +73,7 @@ export async function api<T = unknown>(path: string, init: { method?: string; bo
   return data as T;
 }
 
+/** devAutoLogin: development testing mode, where the test accounts are signed in automatically. */
 export type Me =
-  | { authenticated: false; authProvider: string }
-  | { authenticated: true; authProvider: string; user: { id: string; email: string; displayName: string | null; role: "learner" | "owner" }; mfa: { verified: boolean; enrolled: boolean; requiredForOwner: boolean } };
+  | { authenticated: false; authProvider: string; devAutoLogin?: boolean }
+  | { authenticated: true; authProvider: string; devAutoLogin?: boolean; user: { id: string; email: string; displayName: string | null; role: "learner" | "owner" }; mfa: { verified: boolean; enrolled: boolean; requiredForOwner: boolean } };

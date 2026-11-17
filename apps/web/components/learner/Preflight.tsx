@@ -84,10 +84,14 @@ export function Preflight({ sessionId }: { sessionId: string }) {
   const dot = (c: Check) => <span className={`status-dot ${c === "ok" ? "ok" : c === "fail" ? "bad" : c === "warn" ? "warn" : ""}`} aria-hidden />;
   const small = typeof window !== "undefined" && (window.innerWidth < 1280 || window.innerHeight < 700);
   return (
-    <div className="stack-lg" style={{ maxWidth: 760 }}>
-      <h1>Preflight checks</h1>
-      <p className="muted">These checks protect your attempt: technical problems are recorded as technical limitations, never as clinical errors.</p>
-      <ul className="checklist card">
+    <div className="stack-lg narrow">
+      <div className="page-head">
+        <div>
+          <h1>Preflight checks</h1>
+          <p>A quick check before you start. Technical problems are recorded as limitations, never as clinical errors.</p>
+        </div>
+      </div>
+      <ul className="checklist card" style={{ gap: 14 }}>
         {voice && asrMode !== "dev_injection_only" && (
           <li>{dot(mic)}<div className="stack" style={{ gap: 6, flex: 1 }}>
             <strong>Microphone</strong>
@@ -105,7 +109,7 @@ export function Preflight({ sessionId }: { sessionId: string }) {
         {voice && asrMode === "browser" && <li>{dot(asr)}<div><strong>Speech recognition</strong><br /><span className="muted">{asr === "ok" ? "Available in this browser." : "Not available — use current desktop Chrome or Edge, or choose typed practice."}</span></div></li>}
         <li>{dot(image)}<div><strong>Image display</strong><br /><span className="muted">{image === "ok" ? "Test image decoded and displayed." : image === "fail" ? "Images could not be displayed." : "Checking…"}</span><br /><img src="/preflight-test-pattern.png" alt="Grey checkerboard test pattern" width={64} height={64} /></div></li>
         <li>{dot(rtt === null ? "pending" : rtt < 600 ? "ok" : "warn")}<div><strong>Connection</strong><br /><span className="muted">{rtt === null ? "Measuring…" : `Round trip ${rtt} ms${rtt >= 600 ? " — slow connection; the examiner may respond late." : ""}`}</span></div></li>
-        <li>{dot(small ? "warn" : "ok")}<div><strong>Display</strong><br /><span className="muted">Designed for desktop browsers at 1280×720 or larger (1080p laptops and larger monitors). Not a diagnostic display.</span></div></li>
+        <li>{dot(small ? "warn" : "ok")}<div><strong>Display</strong><br /><span className="muted">Best on a desktop browser at 1280×720 or larger. Not a diagnostic display.</span></div></li>
       </ul>
       {problems.length > 0 && <Alert kind="warning" title="Not ready yet">{problems.map((p) => <p key={p} style={{ margin: "4px 0" }}>{p}</p>)}</Alert>}
       {error && <Alert kind="danger">{error}</Alert>}

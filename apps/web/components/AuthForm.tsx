@@ -3,10 +3,12 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { api, ApiError } from "@/lib/api";
+import { devLogin, useMe, type TestRole } from "@/lib/useMe";
 
 export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
   const router = useRouter();
   const params = useSearchParams();
+  const { me } = useMe();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [accept, setAccept] = useState(false);
@@ -42,6 +44,31 @@ export function AuthForm({ mode }: { mode: "sign-in" | "sign-up" }) {
       setBusy(false);
     }
   };
+
+  if (me?.devAutoLogin) {
+    const go = async (as: TestRole) => {
+      setBusy(true);
+      setError(null);
+      try {
+        await devLogin(as);
+        router.push(as === "owner" ? (next.startsWith("/owner") ? next : "/owner") : next.startsWith("/owner") ? "/app" : next);
+      } catch (err) {
+        setError(err instanceof ApiError ? err.message : "Something went wrong.");
+        setBusy(false);
+      }
+    };
+    return (
+      <div className="card stack" style={{ maxWidth: 440, margin: "0 auto" }}>
+        <h1 style={{ fontSize: "1.6rem" }}>Testing mode</h1>
+        <p className="muted" style={{ margin: 0 }}>Sign-in is switched off on this development build. Choose a test account.</p>
+        {error && <div className="alert alert-danger" role="alert">{error}</div>}
+        <div className="row">
+          <button className="btn btn-primary" type="button" disabled={busy} onClick={() => go("learner")}>Continue as learner</button>
+          <button className="btn" type="button" disabled={busy} onClick={() => go("owner")}>Continue as owner</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form className="card stack" onSubmit={submit} style={{ maxWidth: 440, margin: "0 auto" }} aria-describedby={error ? "auth-error" : undefined}>

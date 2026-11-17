@@ -67,70 +67,102 @@ function Setup() {
 
   const canStart = !!profile && (inputMode === "typed_practice" || (micConsent && (!needsVendorConsent || vendorConsent)));
   return (
-    <div className="stack-lg" style={{ maxWidth: 860 }}>
-      <h1>{demo ? "Free demonstration case" : "Set up a station"}</h1>
-      {demo && <Alert kind="info" title="Demonstration">One practice case. It uses your free demonstration allowance, not examination minutes.</Alert>}
-      <fieldset className="stack">
-        <legend>Examination profile</legend>
-        {profiles.map((p) => (
-          <label key={p.versionId} className="choice">
-            <input type="radio" name="profile" value={p.versionId} checked={profileId === p.versionId} onChange={() => setProfileId(p.versionId)} />
-            <span className="stack" style={{ gap: 4 }}>
-              <span className="row"><strong>{p.displayName}</strong><ProvisionalProfileNote status={p.verification.status} /></span>
-              <span className="muted">{Math.round(p.stationDurationSeconds / 60)}-minute station · {p.cohort}</span>
-            </span>
-          </label>
-        ))}
-      </fieldset>
-      {profile && profile.verification.status !== "verified" && (
-        <Alert kind="warning" title="Provisional configuration">
-          {profile.verification.notes} {profile.verification.unresolvedConflicts.length > 0 && <>Unresolved: {profile.verification.unresolvedConflicts.join(" ")}</>}
-        </Alert>
-      )}
-      {!demo && (
-        <fieldset className="stack">
-          <legend>Mode</legend>
-          <label className="choice"><input type="radio" name="mode" checked={mode === "exam"} onChange={() => setMode("exam")} disabled={!profile?.modes.includes("exam")} /><span><strong>Examination</strong> — fixed timer, preassembled cases, neutral examiner, no hints. Feedback after the whole station. Tracked separately.</span></label>
-          <label className="choice"><input type="radio" name="mode" checked={mode === "practice"} onChange={() => setMode("practice")} /><span><strong>Deliberate practice</strong> — hints, pauses and teaching available; all assistance is recorded and kept out of exam-mode trends.</span></label>
-        </fieldset>
-      )}
-      {!demo && profile && (
-        <div className="field" style={{ maxWidth: 260 }}>
-          <label htmlFor="cases">Number of cases</label>
-          <input id="cases" type="number" min={profile.minCases} max={profile.maxCases} value={caseCount} onChange={(e) => setCaseCount(Number(e.target.value))} />
-          <span className="hint">{profile.minCases}–{profile.maxCases} cases share one {minutes}-minute station.</span>
+    <div className="stack-lg narrow">
+      <div className="page-head">
+        <div>
+          <h1>{demo ? "Free demonstration case" : "Set up a station"}</h1>
+          <p>{demo ? "One practice case. It does not use your examination minutes." : "Choose a profile, a mode and how you will answer."}</p>
         </div>
-      )}
-      <fieldset className="stack">
-        <legend>Answer by</legend>
-        <label className="choice"><input type="radio" name="input" checked={inputMode === "voice"} onChange={() => setInputMode("voice")} /><span><strong>Speaking</strong> (recommended; required for examination mode)</span></label>
-        <label className="choice"><input type="radio" name="input" checked={inputMode === "typed_practice"} onChange={() => { setInputMode("typed_practice"); setMode("practice"); }} /><span><strong>Typing</strong> — a separate practice experience, not equivalent to spoken examination evidence.</span></label>
-      </fieldset>
-      {inputMode === "voice" && (
-        <fieldset className="stack">
-          <legend>Consent</legend>
-          <label className="row" style={{ alignItems: "flex-start" }}>
-            <input type="checkbox" checked={micConsent} onChange={(e) => setMicConsent(e.target.checked)} />
-            <span>I consent to my microphone audio being processed to produce a transcript for this station. Audio is not retained as a recording unless I separately opt in.</span>
-          </label>
-          {needsVendorConsent && (
-            <label className="row" style={{ alignItems: "flex-start" }}>
-              <input type="checkbox" checked={vendorConsent} onChange={(e) => setVendorConsent(e.target.checked)} />
-              <span>This environment uses <strong>browser speech recognition</strong>: my browser's vendor (for example Google, for Chrome) processes the audio under its own terms. I understand this is a development/fallback configuration.</span>
+      </div>
+
+      <fieldset className="form-section" style={{ border: 0, padding: 0 }}>
+        <legend className="label" style={{ padding: 0, marginBottom: 8 }}>Profile</legend>
+        <div className="option-cards">
+          {profiles.map((p) => (
+            <label key={p.versionId} className="choice">
+              <input type="radio" name="profile" value={p.versionId} checked={profileId === p.versionId} onChange={() => setProfileId(p.versionId)} />
+              <span className="stack" style={{ gap: 4 }}>
+                <strong>{p.displayName}</strong>
+                <span className="muted text-sm">{Math.round(p.stationDurationSeconds / 60)}-minute station</span>
+                <span><ProvisionalProfileNote status={p.verification.status} /></span>
+              </span>
             </label>
+          ))}
+        </div>
+        {profile && profile.verification.status !== "verified" && (
+          <details className="text-sm">
+            <summary className="muted" style={{ cursor: "pointer" }}>Why this profile is provisional</summary>
+            <p className="muted" style={{ margin: "8px 0 0" }}>
+              {profile.verification.notes} {profile.verification.unresolvedConflicts.length > 0 && <>Unresolved: {profile.verification.unresolvedConflicts.join(" ")}</>}
+            </p>
+          </details>
+        )}
+      </fieldset>
+
+      {!demo && (
+        <fieldset className="form-section" style={{ border: 0, padding: 0 }}>
+          <legend className="label" style={{ padding: 0, marginBottom: 8 }}>Mode</legend>
+          <div className="option-cards">
+            <label className="choice">
+              <input type="radio" name="mode" checked={mode === "exam"} onChange={() => setMode("exam")} disabled={!profile?.modes.includes("exam")} />
+              <span className="stack" style={{ gap: 2 }}><strong>Examination</strong><span className="muted text-sm">Timed, neutral examiner, no hints. Feedback at the end.</span></span>
+            </label>
+            <label className="choice">
+              <input type="radio" name="mode" checked={mode === "practice"} onChange={() => setMode("practice")} />
+              <span className="stack" style={{ gap: 2 }}><strong>Practice</strong><span className="muted text-sm">Hints and teaching available. Kept out of exam results.</span></span>
+            </label>
+          </div>
+          {profile && (
+            <div className="row" style={{ gap: 10 }}>
+              <label htmlFor="cases" className="label">Number of cases</label>
+              <input id="cases" type="number" min={profile.minCases} max={profile.maxCases} value={caseCount} onChange={(e) => setCaseCount(Number(e.target.value))} style={{ width: 90 }} />
+              <span className="muted text-sm">{profile.minCases}–{profile.maxCases} cases in one {minutes}-minute station</span>
+            </div>
           )}
         </fieldset>
       )}
-      {usage && !demo && (
-        <p className="muted">
-          This station reserves {minutes} minutes; unused time is returned when it ends. Available: {usage.availableMinutes} minutes{usage.periodEndsAt ? ` (renews ${new Date(usage.periodEndsAt).toLocaleDateString()})` : ""}.
-        </p>
+
+      <fieldset className="form-section" style={{ border: 0, padding: 0 }}>
+        <legend className="label" style={{ padding: 0, marginBottom: 8 }}>Answer by</legend>
+        <div className="option-cards">
+          <label className="choice">
+            <input type="radio" name="input" checked={inputMode === "voice"} onChange={() => setInputMode("voice")} />
+            <span className="stack" style={{ gap: 2 }}><strong>Speaking</strong><span className="muted text-sm">Recommended. Required for examination mode.</span></span>
+          </label>
+          <label className="choice">
+            <input type="radio" name="input" checked={inputMode === "typed_practice"} onChange={() => { setInputMode("typed_practice"); setMode("practice"); }} />
+            <span className="stack" style={{ gap: 2 }}><strong>Typing</strong><span className="muted text-sm">Practice only; not equivalent to a spoken answer.</span></span>
+          </label>
+        </div>
+      </fieldset>
+
+      {inputMode === "voice" && (
+        <div className="card stack" style={{ gap: 10 }}>
+          <label className="row" style={{ alignItems: "flex-start", flexWrap: "nowrap" }}>
+            <input type="checkbox" checked={micConsent} onChange={(e) => setMicConsent(e.target.checked)} style={{ marginTop: 5 }} />
+            <span>I consent to my microphone audio being processed to produce a transcript for this station. Audio is not retained as a recording unless I separately opt in.</span>
+          </label>
+          {needsVendorConsent && (
+            <label className="row" style={{ alignItems: "flex-start", flexWrap: "nowrap" }}>
+              <input type="checkbox" checked={vendorConsent} onChange={(e) => setVendorConsent(e.target.checked)} style={{ marginTop: 5 }} />
+              <span>This environment uses <strong>browser speech recognition</strong>: my browser&apos;s vendor (for example Google, for Chrome) processes the audio under its own terms. I understand this is a development/fallback configuration.</span>
+            </label>
+          )}
+        </div>
       )}
+
       {error && <Alert kind="danger">{error}</Alert>}
-      <div className="row">
-        <button type="button" className="btn btn-primary btn-lg" disabled={!canStart || busy} onClick={create} data-testid="create-session">
-          {busy ? "Preparing…" : "Continue to preflight checks"}
-        </button>
+      <div className="stack" style={{ gap: 8 }}>
+        <div className="row">
+          <button type="button" className="btn btn-primary btn-lg" disabled={!canStart || busy} onClick={create} data-testid="create-session">
+            {busy ? "Preparing…" : "Continue to preflight checks"}
+          </button>
+        </div>
+        {usage && !demo && (
+          <p className="muted text-sm" style={{ margin: 0 }}>
+            Reserves {minutes} of your {usage.availableMinutes} available minutes; unused time is returned.
+          </p>
+        )}
       </div>
     </div>
   );

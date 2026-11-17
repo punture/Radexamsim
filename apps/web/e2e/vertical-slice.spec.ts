@@ -77,6 +77,7 @@ test("learner completes the demonstration case and receives an evidence-linked d
 
   // Sign out and back in: the result persists.
   await page.goto("/app");
+  await page.locator("summary", { hasText: "Account" }).click();
   await page.getByRole("button", { name: "Sign out" }).click();
   await signIn(page, "learner@example.test", "learner-dev-password-123");
   await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();

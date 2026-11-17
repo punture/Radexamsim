@@ -1,7 +1,8 @@
 node_modules/
 .next/
 dist/
-coverage/
+# Test-coverage output only. A bare "coverage/" also hid apps/web/app/owner/coverage.
+/coverage/
 *.log
 .env
 .env.*

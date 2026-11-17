@@ -58,25 +58,35 @@ export default function OwnerQueue() {
         </div>
       </div>
     ));
+  const count = (status: string) => overview?.pipeline.find((p) => p.status === status && !p.fixture)?.n ?? 0;
+  const PIPELINE: [string, string][] = [["draft", "Draft"], ["ready_for_owner", "Ready for you"], ["owner_approved", "Approved"], ["published", "Published"]];
   return (
     <OwnerShell>
       <div className="stack-lg">
-        <div className="row-between">
-          <h1>Review queue</h1>
+        <div className="page-head">
+          <div>
+            <h1>Review queue</h1>
+            <p>Items that need your judgment as the clinical reviewer. Routine items wait in the digest.</p>
+          </div>
           {overview && overview.deadJobs > 0 && <Badge kind="danger">{overview.deadJobs} failed background job(s)</Badge>}
         </div>
-        <p className="muted">You are the only human clinical reviewer. Items needing your judgment are listed first; routine items are batched in the digest.</p>
-        <section className="stack"><h2>Urgent ({groups.urgent.length})</h2>{groups.urgent.length ? render(groups.urgent) : <p className="muted">Nothing urgent.</p>}</section>
-        <section className="stack"><h2>Needs review ({groups.normal.length})</h2>{groups.normal.length ? render(groups.normal) : <p className="muted">No open items.</p>}</section>
-        <details className="card"><summary><strong>Digest ({groups.digest.length})</strong> — routine items for periodic review</summary><div className="stack" style={{ marginTop: 10 }}>{render(groups.digest)}</div></details>
+
         {overview && (
-          <section className="card"><h2>Case pipeline</h2>
-            <table className="table"><thead><tr><th>Status</th><th>Clinical</th><th>Fixtures</th></tr></thead><tbody>
-              {["draft", "automated_checks", "ready_for_owner", "owner_approved", "published", "retired"].map((s) => (
-                <tr key={s}><td>{s}</td><td>{overview.pipeline.find((p) => p.status === s && !p.fixture)?.n ?? 0}</td><td>{overview.pipeline.find((p) => p.status === s && p.fixture)?.n ?? 0}</td></tr>
-              ))}
-            </tbody></table>
-          </section>
+          <p className="muted" style={{ margin: 0 }}>
+            Clinical cases: {PIPELINE.map(([s, label], i) => <span key={s}>{i > 0 && " · "}{label} <strong style={{ color: "var(--text)" }}>{count(s)}</strong></span>)}
+          </p>
+        )}
+
+        {items && groups.urgent.length === 0 && groups.normal.length === 0 ? (
+          <p className="empty">Nothing needs your review right now.</p>
+        ) : (
+          <>
+            {groups.urgent.length > 0 && <section className="stack"><h2 style={{ margin: 0 }}>Urgent ({groups.urgent.length})</h2>{render(groups.urgent)}</section>}
+            {groups.normal.length > 0 && <section className="stack"><h2 style={{ margin: 0 }}>Needs review ({groups.normal.length})</h2>{render(groups.normal)}</section>}
+          </>
+        )}
+        {groups.digest.length > 0 && (
+          <details className="card"><summary><strong>Digest ({groups.digest.length})</strong> — routine items for periodic review</summary><div className="stack" style={{ marginTop: 10 }}>{render(groups.digest)}</div></details>
         )}
       </div>
     </OwnerShell>

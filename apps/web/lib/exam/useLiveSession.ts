@@ -34,7 +34,6 @@ export function useLiveSession(sessionId: string, opts: { mediaUrl: (h: string, 
   const pendingTtsAudio = useRef(new Map<string, { bytes: Uint8Array; alignment: Speaking["serverAlignment"] }>());
   const lastInteraction = useRef(0);
   const retry = useRef(0);
-  const stopped = useRef(false);
   const noticeId = useRef(0);
   const clockAnchor = useRef<{ remainingMs: number; at: number; running: boolean } | null>(null);
   const speechMode = useRef<"browser" | "server_stream" | "none">("browser");
@@ -240,22 +239,31 @@ export function useLiveSession(sessionId: string, opts: { mediaUrl: (h: string, 
   const playRef = useRef(playServer);
   playRef.current = playServer;
 
+  // Each run of this effect owns its own socket. A run that has been cleaned up (React runs
+  // effects twice in development) must not open a socket after its ticket arrives, and an old
+  // socket closing must not clear or report on the current one; otherwise two sockets reach
+  // the server, it closes the older one, and the room is left with no usable connection.
   useEffect(() => {
-    stopped.current = false;
+    let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
+    let current: WebSocket | null = null;
     const connect = async () => {
-      if (stopped.current) return;
+      if (cancelled) return;
       try {
         const t = await api<{ ticket: string; url: string }>(`/api/sessions/${sessionId}/ws-ticket`, { method: "POST" });
+        if (cancelled) return;
         const sock = new WebSocket(`${t.url}?ticket=${encodeURIComponent(t.ticket)}`);
         sock.binaryType = "arraybuffer";
+        current = sock;
         ws.current = sock;
         sock.onopen = () => {
+          if (ws.current !== sock) return;
           retry.current = 0;
           setConnection("open");
           sock.send(JSON.stringify({ type: "hello", sessionId, lastServerSeq: 0 }));
         };
         sock.onmessage = (ev) => {
+          if (ws.current !== sock) return;
           if (typeof ev.data === "string") handleRef.current(JSON.parse(ev.data) as ServerMessage);
           else {
             const f = decodeBinaryFrame(new Uint8Array(ev.data as ArrayBuffer));
@@ -267,8 +275,9 @@ export function useLiveSession(sessionId: string, opts: { mediaUrl: (h: string, 
           }
         };
         sock.onclose = (ev) => {
+          if (ws.current !== sock) return; // an older socket; the current one is unaffected
           ws.current = null;
-          if (stopped.current || ev.code === 4401 || ev.code === 4403 || ev.code === 4001) {
+          if (cancelled || ev.code === 4401 || ev.code === 4403 || ev.code === 4001) {
             setConnection("closed");
             return;
           }
@@ -277,15 +286,17 @@ export function useLiveSession(sessionId: string, opts: { mediaUrl: (h: string, 
           timer = setTimeout(connect, delay);
         };
       } catch {
+        if (cancelled) return;
         setConnection("reconnecting");
         timer = setTimeout(connect, Math.min(10_000, 500 * 2 ** retry.current++));
       }
     };
     void connect();
     return () => {
-      stopped.current = true;
+      cancelled = true;
       if (timer) clearTimeout(timer);
-      ws.current?.close();
+      if (ws.current === current) ws.current = null;
+      current?.close();
       speaking.current?.handle?.cancel();
     };
   }, [sessionId]);

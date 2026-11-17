@@ -1,25 +1,26 @@
 "use client";
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { SiteHeader, TestModePill, type NavItem } from "@/components/SiteHeader";
 import { api, ApiError } from "@/lib/api";
-import { useMe } from "@/lib/useMe";
-import { BRAND } from "@/lib/brand";
+import { devLogin, useMe } from "@/lib/useMe";
 
-const NAV = [
+const LINKS: readonly NavItem[] = [
   ["/owner", "Queue"],
   ["/owner/cases", "Cases"],
-  ["/owner/import", "Import"],
   ["/owner/sessions", "Attempts"],
   ["/owner/appeals", "Appeals"],
+];
+const MORE: readonly NavItem[] = [
+  ["/owner/import", "Import cases"],
   ["/owner/coverage", "Coverage"],
   ["/owner/metrics", "Metrics"],
   ["/owner/config", "Configuration"],
-] as const;
+];
 
 /** Owner console shell: requires the owner role and a verified second factor (enforced by the API). */
 export function OwnerShell({ children }: { children: React.ReactNode }) {
-  const { me, reload } = useMe();
+  const { me, reload } = useMe("owner");
   const router = useRouter();
   const path = usePathname();
   const [code, setCode] = useState("");
@@ -42,20 +43,29 @@ export function OwnerShell({ children }: { children: React.ReactNode }) {
       </div>
     );
   }
+  const testing = me.devAutoLogin === true;
+  // In testing mode the learner view signs in as the test learner, who can start stations.
+  const learnerView = async () => {
+    if (testing) await devLogin("learner");
+    router.push("/app");
+  };
   return (
     <>
-      <header className="site-header">
-        <div className="container-wide">
-          <Link href="/owner" className="brand"><span className="brand-mark" aria-hidden>N</span>{BRAND} · Owner</Link>
-          <nav className="nav" aria-label="Owner">
-            {NAV.map(([href, label]) => <Link key={href} href={href} aria-current={path === href ? "page" : undefined}>{label}</Link>)}
-          </nav>
-          <div className="row">
-            <Link className="btn btn-sm" href="/app">Learner view</Link>
+      <SiteHeader
+        home="/owner"
+        suffix="· Owner"
+        label="Owner"
+        links={LINKS}
+        more={MORE}
+        wide
+        actions={
+          <>
+            {testing && <TestModePill />}
+            <button className="btn btn-sm hide-sm" type="button" onClick={learnerView}>Learner view</button>
             <button className="btn btn-sm" type="button" onClick={async () => { await api("/api/auth/logout", { method: "POST" }); router.push("/"); }}>Sign out</button>
-          </div>
-        </div>
-      </header>
+          </>
+        }
+      />
       <main id="main" className="container-wide page">{children}</main>
     </>
   );

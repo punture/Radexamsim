@@ -46,6 +46,8 @@ Open http://localhost:3000. Development accounts are created by the seed:
 
 The owner console requires a second factor. The seed prints a TOTP secret: add it to an authenticator app, or print the current code with `pnpm --filter @sim/api run totp`.
 
+**Testing mode.** With `DEV_AUTO_LOGIN=true` in `.env` (development only; refused in production), sign-in is switched off: learner pages sign in as the test learner, the owner console as the test owner with the second factor treated as verified, and a "Testing mode" label shows in the header. The dev web server listens on 127.0.0.1 only, so other computers cannot reach it.
+
 Without model keys, `pnpm dev` enables the **development baseline assessor**. It is a lexical stand-in, labelled "dev baseline (not clinical)" wherever its results appear, and the configuration refuses it in production. Examiner speech uses the browser's speech synthesis. Recognition uses the browser's speech recognition (Chrome), after explicit consent, because it may send audio to the browser vendor.
 
 Configuration is in environment variables. Copy `.env.example` to `.env` and adjust it; `pnpm dev` loads `.env` if present. Never commit `.env`.

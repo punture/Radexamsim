@@ -143,16 +143,23 @@ export function ExamRoom({ sessionId }: { sessionId: string }) {
   if (!state) return <div className="container page"><p role="status">Connecting to the examination…</p></div>;
   const cc = state.currentCase;
   const low = (live.remainingMs ?? 1e9) < 60_000;
+  const minutes = Math.round(state.profile.stationDurationSeconds / 60);
+  const modeLabel = state.mode === "exam" ? "Examination mode" : state.mode === "practice" ? "Practice mode" : "Owner preview";
+  const sendTyped = () => {
+    if (!typed.trim()) return;
+    live.send({ type: "candidate_transcript", commandId: live.newId(), source: "typed", text: typed.trim(), clientStartMs: 0, clientEndMs: 0, confidence: null, provider: { name: "typed", model: null } });
+    live.send({ type: "end_turn", commandId: live.newId() });
+    setTyped("");
+  };
 
   return (
     <>
       <style>{VIEWER_CSS}</style>
       {state.containsDevelopmentFixtures && <FixtureBanner />}
       <div className="exam-topbar">
-        <div className="row">
+        <div className="row" style={{ gap: 10, minWidth: 0 }}>
           <strong>{cc?.neutralLabel ?? (state.status === "ready" ? "Ready to begin" : "Station")}</strong>
-          <span className="badge">{state.mode === "exam" ? "Examination mode" : state.mode === "practice" ? "Practice mode" : "Owner preview"}</span>
-          <ProvisionalProfileNote status={state.profile.verificationStatus} />
+          <span className="badge">{modeLabel}</span>
           {live.connection !== "open" && <span className="badge badge-warning" role="status">{live.connection === "reconnecting" ? "Reconnecting…" : live.connection}</span>}
         </div>
         <div className="row">
@@ -167,19 +174,18 @@ export function ExamRoom({ sessionId }: { sessionId: string }) {
       <div className="exam-shell">
         <aside className="exam-side" aria-label="Case information and controls">
           {state.status === "ready" && (
-            <div className="card card-tight stack">
-              <h2 style={{ fontSize: "1.1rem" }}>{state.profile.displayName}</h2>
-              <p className="muted" style={{ margin: 0 }}>
-                The station clock ({Math.round(state.profile.stationDurationSeconds / 60)} minutes) starts when you begin and keeps running during silence. Speak naturally; pauses to think are normal.
-              </p>
-              <button type="button" className="btn btn-primary btn-lg" onClick={start} data-testid="begin-station">
-                Begin station
-              </button>
-            </div>
+            <section className="stack" style={{ gap: 8 }}>
+              <h2 className="exam-card-title">Before you begin</h2>
+              <ul className="dots text-sm">
+                <li>The {minutes}-minute clock starts when you begin and keeps running during silence.</li>
+                <li>Pauses to think are normal.</li>
+                <li>{state.inputMode === "voice" ? "When you finish an answer, press Enter or the button." : "Type each answer and send it."}</li>
+              </ul>
+            </section>
           )}
           {cc && (
-            <section aria-labelledby="history-h">
-              <h2 id="history-h" style={{ fontSize: "1rem" }}>History</h2>
+            <section aria-labelledby="history-h" className="exam-card">
+              <h2 id="history-h" className="exam-card-title">History</h2>
               {cc.history.map((h, i) => (
                 <p key={i} style={{ margin: "0 0 6px" }}>{h}</p>
               ))}
@@ -196,17 +202,9 @@ export function ExamRoom({ sessionId }: { sessionId: string }) {
 
           {active && state.inputMode === "voice" && asrMode !== "dev_injection_only" && (
             <section className="stack" aria-label="Microphone">
-              <div className="row-between">
-                <span className="label">Microphone</span>
-                <span className="muted" style={{ fontSize: "0.82rem" }}>{asrMode === "browser" ? "Browser speech recognition" : "Server speech recognition"}</span>
-              </div>
-              <div className="meter" aria-hidden><span style={{ width: `${Math.round((muted ? 0 : level) * 100)}%` }} /></div>
-              <div className="row">
+              <div className="row" style={{ gap: 10, flexWrap: "nowrap" }}>
+                <div className="meter" aria-hidden style={{ flex: 1 }}><span style={{ width: `${Math.round((muted ? 0 : level) * 100)}%` }} /></div>
                 <button type="button" className="btn btn-sm" aria-pressed={muted} onClick={() => setMuted((m) => !m)}>{muted ? "Unmute" : "Mute"}</button>
-                <button type="button" className="btn btn-sm" aria-pressed={pushToTalk} onClick={() => setPushToTalk((p) => !p)}>{pushToTalk ? "Push-to-talk on" : "Open mic"}</button>
-                <label className="row" style={{ gap: 6, fontSize: "0.86rem" }}>
-                  <input type="checkbox" checked={headphones} onChange={(e) => setHeadphones(e.target.checked)} /> Using headphones (allows interrupting the examiner)
-                </label>
               </div>
               {pushToTalk && (
                 <button type="button" className="btn" onPointerDown={() => setTalking(true)} onPointerUp={() => { setTalking(false); endTurn(); }} aria-pressed={talking}>
@@ -216,23 +214,46 @@ export function ExamRoom({ sessionId }: { sessionId: string }) {
               <button type="button" className="btn btn-primary" onClick={endTurn} data-testid="end-turn">
                 I've finished my answer <kbd className="mono" style={{ fontSize: "0.75rem" }}>Enter</kbd>
               </button>
+              <details className="text-sm">
+                <summary className="muted" style={{ cursor: "pointer" }}>Microphone options</summary>
+                <div className="stack" style={{ gap: 8, marginTop: 8 }}>
+                  <span className="muted">{asrMode === "browser" ? "Browser speech recognition" : "Server speech recognition"}</span>
+                  <label className="row" style={{ gap: 6, flexWrap: "nowrap", alignItems: "flex-start" }}>
+                    <input type="checkbox" checked={pushToTalk} onChange={(e) => setPushToTalk(e.target.checked)} /> Push-to-talk (hold T or the button to speak)
+                  </label>
+                  <label className="row" style={{ gap: 6, flexWrap: "nowrap", alignItems: "flex-start" }}>
+                    <input type="checkbox" checked={headphones} onChange={(e) => setHeadphones(e.target.checked)} /> Using headphones (lets you interrupt the examiner)
+                  </label>
+                </div>
+              </details>
             </section>
           )}
 
           {active && state.inputMode === "typed_practice" && (
             <form
               className="stack"
+              style={{ gap: 8 }}
               onSubmit={(e) => {
                 e.preventDefault();
-                if (!typed.trim()) return;
-                live.send({ type: "candidate_transcript", commandId: live.newId(), source: "typed", text: typed.trim(), clientStartMs: 0, clientEndMs: 0, confidence: null, provider: { name: "typed", model: null } });
-                live.send({ type: "end_turn", commandId: live.newId() });
-                setTyped("");
+                sendTyped();
               }}
             >
-              <label className="label" htmlFor="typed">Typed answer (practice — not equivalent to spoken examination evidence)</label>
-              <textarea id="typed" value={typed} onChange={(e) => setTyped(e.target.value)} />
-              <button className="btn btn-primary" type="submit">Send answer</button>
+              <label className="label" htmlFor="typed">Your answer</label>
+              <textarea
+                id="typed"
+                value={typed}
+                onChange={(e) => setTyped(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    sendTyped();
+                  }
+                }}
+              />
+              <div className="row-between">
+                <span className="muted text-sm">Typed practice; not equivalent to a spoken answer. Ctrl+Enter sends.</span>
+                <button className="btn btn-primary" type="submit">Send answer</button>
+              </div>
             </form>
           )}
 
@@ -261,9 +282,17 @@ export function ExamRoom({ sessionId }: { sessionId: string }) {
             </div>
           )}
 
-          <div className="row" style={{ fontSize: "0.86rem" }}>
-            <label className="row" style={{ gap: 6 }}><input type="checkbox" checked={showCaptions} onChange={(e) => setShowCaptions(e.target.checked)} /> Examiner captions</label>
+          {live.notices.map((n) => (
+            <div key={n.id} className={`alert alert-${n.level === "error" ? "danger" : n.level === "warning" ? "warning" : "info"}`} role={n.level === "error" ? "alert" : "status"}>
+              {n.message}{" "}
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => live.dismissNotice(n.id)} aria-label="Dismiss">✕</button>
+            </div>
+          ))}
+          {live.ended && <div className="alert alert-info" role="status"><strong>Station ended.</strong> Preparing your results…</div>}
+
+          <div className="row text-sm" style={{ gap: 16, marginTop: "auto", paddingTop: 4 }}>
             <label className="row" style={{ gap: 6 }}><input type="checkbox" checked={transcriptVisible} onChange={(e) => setShowTranscript(e.target.checked)} /> Live transcript</label>
+            <label className="row" style={{ gap: 6 }}><input type="checkbox" checked={showCaptions} onChange={(e) => setShowCaptions(e.target.checked)} /> Examiner captions</label>
           </div>
           {transcriptVisible && (
             <div className="transcript" aria-live="polite" aria-label="Live transcript">
@@ -274,13 +303,6 @@ export function ExamRoom({ sessionId }: { sessionId: string }) {
               ))}
             </div>
           )}
-          {live.notices.map((n) => (
-            <div key={n.id} className={`alert alert-${n.level === "error" ? "danger" : n.level === "warning" ? "warning" : "info"}`} role={n.level === "error" ? "alert" : "status"}>
-              {n.message}{" "}
-              <button type="button" className="btn btn-ghost btn-sm" onClick={() => live.dismissNotice(n.id)} aria-label="Dismiss">✕</button>
-            </div>
-          ))}
-          {live.ended && <div className="alert alert-info" role="status"><strong>Station ended.</strong> Preparing your results…</div>}
         </aside>
         <main id="main" className="exam-main" onPointerDown={live.markInteraction} onWheel={live.markInteraction}>
           {live.pendingNewImages && (
@@ -299,10 +321,22 @@ export function ExamRoom({ sessionId }: { sessionId: string }) {
               onInteraction={live.markInteraction}
               onViewSample={(handle, frameIndex, viewedMs) => viewSamples.current.push({ handle, frameIndex, viewedMs })}
             />
-          ) : (
-            <div style={{ display: "grid", placeItems: "center", height: "100%", color: "#9aa7b6" }}>
-              {state.status === "ready" ? "Images appear when the station begins." : "Waiting for the next case…"}
+          ) : state.status === "ready" ? (
+            <div className="exam-ready">
+              <div className="exam-ready-card stack">
+                <h2 style={{ margin: 0, fontSize: "1.3rem" }}>{state.profile.displayName}</h2>
+                <div className="row" style={{ gap: 8 }}>
+                  <span className="badge">{modeLabel}</span>
+                  <ProvisionalProfileNote status={state.profile.verificationStatus} />
+                </div>
+                <p className="muted" style={{ margin: 0 }}>{minutes}-minute station. Images appear when you begin.</p>
+                <button type="button" className="btn btn-primary btn-lg" onClick={start} data-testid="begin-station">
+                  Begin station
+                </button>
+              </div>
             </div>
+          ) : (
+            <div className="exam-empty">Waiting for the next case…</div>
           )}
         </main>
       </div>
