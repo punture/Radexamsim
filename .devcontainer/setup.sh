@@ -24,6 +24,14 @@ fi
 # The package normally creates the "16 main" cluster; create it if it did not.
 pg_lsclusters --no-header | grep -qE '^16[[:space:]]+main[[:space:]]' || sudo pg_createcluster 16 main
 
+# The development role "sim" (development password only). scripts/dev-db.sh would create it with
+# "sudo -u postgres", which this container's sudo rule (root only) refuses; runuser works.
+sudo pg_ctlcluster 16 main start 2>/dev/null || true
+for _ in $(seq 1 30); do pg_isready -q -h 127.0.0.1 -p 5432 && break; sleep 1; done
+as_postgres() { (cd / && sudo runuser -u postgres -- psql -v ON_ERROR_STOP=1 -tAc "$1"); }
+as_postgres "SELECT 1 FROM pg_roles WHERE rolname = 'sim'" | grep -qx 1 \
+  || as_postgres "CREATE ROLE sim LOGIN CREATEDB PASSWORD 'sim_dev_password'"
+
 PNPM_VERSION="$(node -p "require('./package.json').packageManager.replace(/^pnpm@/, '').split('+')[0]")"
 echo "Installing pnpm ${PNPM_VERSION}..."
 npm install -g "pnpm@${PNPM_VERSION}" || sudo npm install -g "pnpm@${PNPM_VERSION}"
