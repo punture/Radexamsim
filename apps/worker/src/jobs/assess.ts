@@ -1,4 +1,5 @@
 import { runCaseAssessment, SpendTracker, type PipelineDeps, type RunContext } from "@sim/ai";
+import { modelUseAllowed } from "@sim/clinical-content";
 import {
   and,
   assessmentPasses,
@@ -27,8 +28,10 @@ export async function assessCaseAttempt(deps: WorkerDeps, payload: { caseAttempt
   if (data.mode === "owner_preview" && data.segments.length === 0) return { skipped: "owner preview without speech" };
   const disabled = await assessmentLlmDisabled(db);
   const spend = new SpendTracker(deps.config.ASSESSMENT_SPEND_CAP_USD);
+  // Without model access (LLM_FIXTURES_ONLY and a real case) the pipeline proceeds as with no model.
+  const modelAllowed = modelUseAllowed(data.caseVersion, deps.config.LLM_FIXTURES_ONLY);
   const ctx = (role: Parameters<WorkerDeps["providerFor"]>[0]): RunContext | null => {
-    const provider = deps.providerFor(role);
+    const provider = modelAllowed ? deps.providerFor(role) : null;
     if (!provider) return null;
     return {
       routing: { provider, model: deps.modelFor(role) },

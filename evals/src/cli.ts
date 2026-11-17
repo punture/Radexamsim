@@ -1,7 +1,7 @@
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import path from "node:path";
 import { ABR_NEURO_PROFILE } from "@sim/clinical-content";
-import { AnthropicProvider, promptVersions } from "@sim/ai";
+import { createLlmProvider, DEFAULT_MODEL, llmSettingsProblems, promptVersions, type LlmSettings } from "@sim/ai";
 import { buildBlindPacket, importRatings, loadOwnerReference } from "./blind";
 import { simulateExaminer, type ExaminerProposerConfig } from "./examiner-sim";
 import { gitCommit, logRun, verifyLock, writeLock } from "./lock";
@@ -24,20 +24,33 @@ async function run(): Promise<void> {
   const cases = evalCases();
   const profile = ABR_NEURO_PROFILE;
   const variants = opt("variants", "base,rephrased,verbose,asr_noisy").split(",") as Variant[];
-  const apiKey = process.env.ANTHROPIC_API_KEY;
   const wantLlm = flag("llm");
-  if (wantLlm && !apiKey) throw new Error("--llm requested but ANTHROPIC_API_KEY is not set; refusing to label a baseline run as a model run.");
+  // --llm uses Anthropic unless LLM_PROVIDER=gemini.
+  const settings: LlmSettings = {
+    LLM_PROVIDER: process.env.LLM_PROVIDER === "gemini" ? "gemini" : "anthropic",
+    ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+    GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+    LLM_SERVER_SIDE_FALLBACKS: true,
+  };
+  const keyName = settings.LLM_PROVIDER === "gemini" ? "GEMINI_API_KEY" : "ANTHROPIC_API_KEY";
+  if (wantLlm && !process.env[keyName]) throw new Error(`--llm requested but ${keyName} is not set; refusing to label a baseline run as a model run.`);
   // External processing guard: only fictional fixtures or cases cleared for external AI.
   const blocked = [...cases.values()].filter((c) => !c.isDevelopmentFixture && !c.clearances.externalAiProcessingAllowed);
   if (wantLlm && blocked.length) throw new Error(`external AI processing not permitted for: ${blocked.map((c) => c.caseId).join(", ")}`);
-  const provider = wantLlm ? new AnthropicProvider({ apiKey: apiKey!, enableServerSideFallbacks: true }) : null;
-  const def = process.env.MODEL_DEFAULT ?? "claude-opus-5-5";
+  const real = [...cases.values()].filter((c) => !c.isDevelopmentFixture);
+  if (wantLlm && ["true", "1"].includes(process.env.LLM_FIXTURES_ONLY ?? "") && real.length) {
+    throw new Error(`LLM_FIXTURES_ONLY is set; refusing to send non-fixture cases to the model: ${real.map((c) => c.caseId).join(", ")}`);
+  }
+  const def = process.env.MODEL_DEFAULT ?? (settings.LLM_PROVIDER === "gemini" ? DEFAULT_MODEL.gemini : DEFAULT_MODEL.anthropic);
   const models = {
     extractor: process.env.MODEL_EVIDENCE_EXTRACTOR ?? def,
     assessorA: process.env.MODEL_ASSESSOR_A ?? def,
     assessorB: process.env.MODEL_ASSESSOR_B ?? def,
     adjudicator: process.env.MODEL_ADJUDICATOR ?? def,
   };
+  const problems = wantLlm ? llmSettingsProblems(settings, [...Object.values(models), process.env.MODEL_LIVE_EXAMINER]) : [];
+  if (problems.length) throw new Error(problems.join("; "));
+  const provider = wantLlm ? createLlmProvider(settings) : null;
   const assessor: AssessorConfig = provider ? { kind: "llm", provider, models } : { kind: "baseline" };
   const examiner: ExaminerProposerConfig = provider && flag("llm-examiner") ? { kind: "llm", provider, model: process.env.MODEL_LIVE_EXAMINER ?? def } : { kind: "deterministic" };
   const lock = verifyLock(cases);

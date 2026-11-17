@@ -31,7 +31,7 @@ flowchart LR
   end
   DB[(PostgreSQL 16<br/>RLS · append-only triggers · job queue)]
   ST[(Private object storage<br/>local-fs or S3-compatible bucket)]
-  LLM[Anthropic API<br/>examiner · extractor · assessors · adjudicator · author · critics]
+  LLM[Anthropic or Gemini API<br/>examiner · extractor · assessors · adjudicator · author · critics]
   ASR[Deepgram streaming ASR]
   TTS[ElevenLabs / Deepgram TTS]
   STRIPE[Stripe<br/>test mode only]
@@ -147,10 +147,10 @@ Details, including statuses, prompting levels, caps and board-specific display, 
 
 | Role | Real adapter | Verified live? | Fallback |
 |---|---|---|---|
-| Examiner | Anthropic structured output with server-side fallbacks | No (no key) | Deterministic approved-question policy |
-| Evidence extraction, assessors A and B, adjudicator | Anthropic | No | Production: explicit "unavailable". Development: labelled lexical baseline |
+| Examiner | Anthropic structured output with server-side fallbacks, or Gemini (`LLM_PROVIDER=gemini`, Interactions API with a response schema) | No (no key) | Deterministic approved-question policy |
+| Evidence extraction, assessors A and B, adjudicator | Anthropic or Gemini | No | Production: explicit "unavailable". Development: labelled lexical baseline |
 | Feedback | Deterministic composer (an optional LLM writer is constrained to rewording only) | n/a | Deterministic composer |
-| Case author, critics | Anthropic | No | Owner edits in the structured editor |
+| Case author, critics | Anthropic or Gemini | No | Owner edits in the structured editor |
 | ASR | Deepgram streaming (`nova-3-medical`) with a neuroradiology vocabulary | No | Browser speech recognition (labelled as vendor-processed, consent required), typed input in practice only |
 | TTS | ElevenLabs with timestamps, Deepgram Aura | No | Browser speech synthesis (word boundaries), or text only |
 | Auth | Supabase JWT (JWKS) | No | Local scrypt accounts, development only (refused in production) |
@@ -183,7 +183,7 @@ Details, including statuses, prompting levels, caps and board-specific display, 
 ## 11. Prioritized backlog
 
 1. **Content (blocking):** the owner supplies the first approved cases (see the ten content-request slots). Then run de-identification with `tools/ingestion` and the authoring, critique and approval workflow.
-2. **Credentials (blocking live verification):** Anthropic, Deepgram, and ElevenLabs or Deepgram TTS, then measure real latency and cost, and run `pnpm evals -- --llm` for the model-assessor release gate. Supabase project for production auth. Stripe test keys for checkout and webhooks.
+2. **Credentials (blocking live verification):** Anthropic or Gemini, Deepgram, and ElevenLabs or Deepgram TTS, then measure real latency and cost, and run `pnpm evals -- --llm` for the model-assessor release gate. Supabase project for production auth. Stripe test keys for checkout and webhooks.
 3. ~~An S3-compatible private storage driver~~ Done; verify it with a real provider once one is chosen (STORAGE.md).
 4. Hosting decision and deployment (needs owner authorization): sticky WebSocket routing, managed PostgreSQL with point-in-time recovery, secrets management.
 5. Cornerstone3D DICOM stack viewing once suitable de-identified DICOM exists.

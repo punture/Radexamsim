@@ -126,6 +126,7 @@ export function redactError(error: unknown): string {
   return raw
     .replace(/(sk|rk|pk)_(live|test)_[A-Za-z0-9]+/g, "[redacted-key]")
     .replace(/sk-ant-[A-Za-z0-9_-]+/g, "[redacted-key]")
+    .replace(/AIza[0-9A-Za-z_-]{35}/g, "[redacted-key]")
     .replace(/Bearer\s+[A-Za-z0-9._-]+/gi, "Bearer [redacted]")
     .slice(0, 500);
 }

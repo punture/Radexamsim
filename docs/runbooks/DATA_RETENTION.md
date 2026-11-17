@@ -79,7 +79,7 @@ Related: [BACKUP_RESTORE.md](BACKUP_RESTORE.md) §7 (erasure and backups) · [IN
 
 | Processor | Data | Control in the code |
 |---|---|---|
-| Anthropic | Case text and learner transcripts (examiner, assessment, feedback); case JSON without images (author, critics) | `LLM_PROVIDER`, kill switches, per-case clearance for author and critics only (DEPLOYMENT.md, B5) |
+| Anthropic or Google (Gemini), whichever `LLM_PROVIDER` names | Case text and learner transcripts (examiner, assessment, feedback); case JSON without images (author, critics) | `LLM_PROVIDER`, kill switches, per-case clearance for author and critics only (DEPLOYMENT.md, B5). Gemini requests set `store: false`; use a billing-enabled Google Cloud project, because the unpaid tier allows Google to use prompts and responses |
 | Deepgram | Learner microphone audio (server recognition); examiner text (Deepgram TTS) | Consent gate; `mip_opt_out=true` (opt out of use for model improvement); `serverAsrDisabled` |
 | ElevenLabs | Examiner text | `serverTtsDisabled` |
 | Learner's browser vendor | Microphone audio, with browser recognition | `browser_speech_vendor` consent |

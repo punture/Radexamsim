@@ -1,7 +1,19 @@
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import path from "node:path";
 import { EVALS_DIR } from "./suites";
+
+/**
+ * The vitest CLI script, run with this Node binary. No npx and no shell, so it also works on
+ * Windows (where npx is a .cmd file) and with spaces in the repository path.
+ */
+function vitestCli(root: string): string {
+  const pkgPath = createRequire(path.join(root, "package.json")).resolve("vitest/package.json");
+  const pkg = JSON.parse(readFileSync(pkgPath, "utf8")) as { bin?: string | Record<string, string> };
+  const bin = typeof pkg.bin === "string" ? pkg.bin : (pkg.bin?.vitest ?? "vitest.mjs");
+  return path.join(path.dirname(pkgPath), bin);
+}
 
 /**
  * Deterministic software regression scenarios required by the specification (§18), each
@@ -213,10 +225,12 @@ export function runRegression(opts: { skip?: boolean; repoRoot?: string } = {}):
   let byKey = new Map<string, "passed" | "failed">();
   let ran = false;
   if (!opts.skip) {
-    const r = spawnSync("npx", ["vitest", "run", "--reporter=json", `--outputFile=${out}`, ...files], { cwd: root, encoding: "utf8", timeout: 600_000 });
+    const r = spawnSync(process.execPath, [vitestCli(root), "run", "--reporter=json", `--outputFile=${out}`, ...files], { cwd: root, encoding: "utf8", timeout: 600_000 });
     if (existsSync(out)) {
       const json = JSON.parse(readFileSync(out, "utf8")) as { testResults: { name: string; assertionResults: { title: string; status: string }[] }[] };
-      byKey = new Map(json.testResults.flatMap((f) => f.assertionResults.map((a) => [`${path.relative(root, f.name)}::${a.title}`, a.status === "passed" ? ("passed" as const) : ("failed" as const)])));
+      // Scenario files use "/"; on Windows path.relative returns "\".
+      const rel = (file: string) => path.relative(root, file).split(path.sep).join("/");
+      byKey = new Map(json.testResults.flatMap((f) => f.assertionResults.map((a) => [`${rel(f.name)}::${a.title}`, a.status === "passed" ? ("passed" as const) : ("failed" as const)])));
       ran = true;
       note = r.status === 0 ? "all mapped test files passed" : "some mapped tests failed (see statuses)";
     } else note = `test run did not produce results (exit ${r.status}); database-backed tests need PostgreSQL running`;

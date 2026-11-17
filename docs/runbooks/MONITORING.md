@@ -18,7 +18,7 @@ Related: [DEPLOYMENT.md](DEPLOYMENT.md) · [INCIDENT.md](INCIDENT.md) · [ROLLBA
 | `session_events` table | `packages/db/src/events.ts`, `apps/api/src/live/session.ts` | The durable station timeline (event types in §3.5) | Database |
 | `jobs`, `station_sessions`, `usage_ledger`, `stripe_events`, `data_requests`, `owner_review_items`, `case_assessments` | `packages/db/src/schema.ts` | Queue, session states, open reservations, webhook backlog, privacy requests, exceptions, assessor kinds | Database |
 | Logs | API: pino JSON on stdout (`apps/api/src/server.ts`). Worker: console lines (`apps/worker/src/main.ts`, `runner.ts`). Live sessions: `console.error("[live <id>] …")` | Startup provider lines, restart recovery count, unhandled errors (name and message only) | Host log store |
-| Provider dashboards | Anthropic, Deepgram, ElevenLabs, Stripe | Real usage, invoices and webhook delivery logs. **Speech usage is not recorded by the application.** | Owner accounts |
+| Provider dashboards | Anthropic or Google Cloud (Gemini), Deepgram, ElevenLabs, Stripe | Real usage, invoices and webhook delivery logs. **Speech usage is not recorded by the application.** | Owner accounts |
 
 Not collected:
 
@@ -277,7 +277,7 @@ GROUP BY role;
 
 **Monthly reconciliation:**
 
-1. Compare the estimated model cost for the month with the Anthropic invoice.
+1. Compare the estimated model cost for the month with the model provider's invoice (Anthropic, or Google Cloud billing for Gemini). Gemini estimates use Google's paid Standard-tier prices; a key from a project without billing runs on the free tier and is not billed.
 2. Add the speech provider invoices.
 3. Divide by completed stations.
 4. Record the result with the owner.

@@ -84,7 +84,7 @@ All of these need the owner role and a verified second factor. The console pages
    ```
 
    Handles belonging to learners who have since deleted their accounts are gone.
-4. **Establish whether case text left the system.** No code path sends image pixels to a model. Case text does go to Anthropic during live examining, assessment and feedback whenever a model is configured (DEPLOYMENT.md, B5).
+4. **Establish whether case text left the system.** No code path sends image pixels to a model. Case text does go to the configured model provider (Anthropic or Google, per `LLM_PROVIDER`) during live examining, assessment and feedback whenever a model is configured (DEPLOYMENT.md, B5). The `provider` column below says which.
 
    ```sql
    SELECT role, provider, model, count(*) AS calls, min(created_at), max(created_at)
@@ -113,9 +113,9 @@ Other privacy incidents follow the same order: contain, scope, preserve, decide.
 
 | Provider | What the code does automatically | Levers |
 |---|---|---|
-| Anthropic: live examiner | Each decision waits up to `EXAMINER_LLM_TIMEOUT_MS` (2,500 ms), then the deterministic approved-question policy decides. Stations continue. | `examinerLlmDisabled` removes the wait on every turn. |
-| Anthropic: assessment, fast failures | Jobs retry with about a minute of backoff, then become `dead` and raise review items. Debriefs show those cases as "unavailable". | After recovery, requeue the dead jobs. Assessments then run and new debrief versions are built. |
-| Anthropic: assessment, slow failures (timeouts) | Each attempt of each prompt can take up to its timeout (90–180 s), so one assessment can occupy the single worker for many minutes. Stripe events, exports and deletions wait behind it (DEPLOYMENT.md, L5). | Turn on `assessmentLlmDisabled`. Jobs then finish quickly as "unavailable"; they are not dead and are not retried. After recovery, switch it off and **reassess each affected attempt** (query in MONITORING.md §3.7). Every reassessment costs money. |
+| Model provider (Anthropic or Gemini): live examiner | Each decision waits up to `EXAMINER_LLM_TIMEOUT_MS` (2,500 ms), then the deterministic approved-question policy decides. Stations continue. | `examinerLlmDisabled` removes the wait on every turn. |
+| Model provider: assessment, fast failures | Jobs retry with about a minute of backoff, then become `dead` and raise review items. Debriefs show those cases as "unavailable". | After recovery, requeue the dead jobs. Assessments then run and new debrief versions are built. |
+| Model provider: assessment, slow failures (timeouts) | Each attempt of each prompt can take up to its timeout (90–180 s), so one assessment can occupy the single worker for many minutes. Stripe events, exports and deletions wait behind it (DEPLOYMENT.md, L5). | Turn on `assessmentLlmDisabled`. Jobs then finish quickly as "unavailable"; they are not dead and are not retried. After recovery, switch it off and **reassess each affected attempt** (query in MONITORING.md §3.7). Every reassessment costs money. |
 | Deepgram speech recognition | A stream error or a failed connection pauses the station as a platform failure, so the learner's clock stops. If it is not resolved within the profile's maximum pause, the station is invalidated and the minutes are credited automatically. | `serverAsrDisabled` refuses new streams but gives **no voice fallback**. For a longer outage, set `ASR_PROVIDER=browser` and restart the API. This pauses live stations. Learners then need Chrome or Edge and `browser_speech_vendor` consent. |
 | ElevenLabs or Deepgram speech synthesis | The question is shown on screen ("Examiner audio failed"). The browser waits about 12 s before treating it as delivered. | `serverTtsDisabled` stops the calls (same 12 s wait). For a longer outage, `TTS_PROVIDER=browser` and restart. |
 | Stripe | Checkout and portal requests fail with an error. Webhooks wait at Stripe. Existing entitlements are unaffected: the app does not call Stripe to check access. | After recovery, check Stripe's delivery log and resend failed events (duplicates are ignored). Check `stripe_events` for pending rows. |
@@ -197,12 +197,13 @@ General order:
    - the deployed client bundle (`node scripts/check-client-bundle-leaks.mjs --dist <build dir>`);
    - logs, tickets, chat and shell history.
 
-   Stored job errors have key patterns redacted (`sk-ant-…`, `sk_/rk_/pk_` live or test keys, `Bearer …`). Provider messages in other logs may not be.
+   Stored job errors have key patterns redacted (`sk-ant-…`, Google `AIza…` keys, `sk_/rk_/pk_` live or test keys, `Bearer …`). Provider messages in other logs may not be.
 
 | Credential | Used by | Specific steps |
 |---|---|---|
 | `DATABASE_URL` password | API, worker, migrations | Rotate the role password. Review connection logs. Assess data exposure as a privacy incident (§4.2). Restart both services. |
 | `ANTHROPIC_API_KEY` | API, worker | Rotate. Review spending. Set a spending limit at the provider. |
+| `GEMINI_API_KEY` | API, worker | Delete and recreate the key in the Google Cloud project. Review usage and billing. Keep a budget alert on the project. |
 | `DEEPGRAM_API_KEY`, `ELEVENLABS_API_KEY` | API | Rotate. Review usage. |
 | `STRIPE_SECRET_KEY` | API | Roll the key in Stripe. Review events and charges. |
 | `STRIPE_WEBHOOK_SECRET` | API | Roll the endpoint's signing secret in Stripe, update it, restart the API. Until then forged events could be accepted, so compare `stripe_events` ids with Stripe's event list. |

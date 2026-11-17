@@ -41,6 +41,7 @@ The product must not be offered to paying clinical users in this state.
 | Evaluation harness: 25 response patterns, variants, examiner simulation, 16-scenario regression matrix, locked final split, blind owner ratings, report | Implemented, tested | `evals/test/evals.test.ts`, `evals/reports/latest.md` |
 | Client-bundle leak scan | Implemented; passes | `pnpm check:leaks` |
 | Anthropic models (examiner, extractor, assessors, adjudicator, author, critics) | **Simulated**: adapter written to the SDK typings; never called live | Scripted-provider tests only |
+| Google Gemini models, default Gemini 4 Hydrogen (`gemini-4-hydrogen`), for the same roles (`LLM_PROVIDER=gemini`) | **Partly verified live** (2026-11-16, free-tier key, no case data): a test request and all eight role output schemas were accepted, each with valid output. Not yet run in a full session or with `pnpm evals -- --llm`. `LLM_FIXTURES_ONLY=true` (development only, for a free-tier key) keeps every real case away from the model | Tested against a local mock of the API (`packages/ai/test/gemini.test.ts`); the fixtures-only switch in `apps/*/test/fixtures-only.test.ts` |
 | Deepgram streaming ASR, ElevenLabs and Deepgram TTS | **Simulated**: adapters only; never called live | Mock providers; alignment parsing tested |
 | Browser speech (synthesis, recognition) | Implemented; not tested with a real microphone in automation (E2E uses dev-injected speech) | Manual check pending |
 | Supabase auth (JWT/JWKS, aal2) | **Simulated**: never connected to a project | Local dev auth is tested |
@@ -52,7 +53,7 @@ The product must not be offered to paying clinical users in this state.
 | Approved clinical cases | **Blocked on owner content**: 0 approved; 10 content-request slots open | Owner console → Coverage |
 | Deployment | **Blocked on owner decision and authorization** | `docs/runbooks/DEPLOYMENT.md` |
 
-Automated test totals at this commit: **122 vitest tests in 12 files** (plus 9 S3 integration tests that `pnpm test:s3` runs against moto, together with the 19 API and worker tests on S3 storage), **4 Playwright tests**, **74 pytest tests** (ingestion), all passing. Typecheck, the client-bundle leak scan and the production web build pass.
+Automated test totals at this commit: **146 vitest tests in 17 files** (plus 9 S3 integration tests that `pnpm test:s3` runs against moto, together with the 19 API and worker tests on S3 storage), **4 Playwright tests**, **74 pytest tests** (ingestion), all passing. Typecheck, the client-bundle leak scan and the production web build pass.
 
 ## Measured results (fixtures, development configuration)
 
@@ -62,7 +63,7 @@ Automated test totals at this commit: **122 vitest tests in 12 files** (plus 9 S
   - all evidence spans were valid (144/144).
 
   The baseline itself shows what a lexical matcher gets wrong. On the locked final split it produced 0/5 false reassurance but 3/7 unfair failures, by misreading phrases such as "hemorrhage is excluded". This is why it is refused in production. It is not a measure of the product's model assessor, which has not been run.
-- **Latency:** the deterministic examiner decides in under 1 ms in-process. In the load test (`docs/LOAD_TEST.md`; 4-vCPU container, everything on one machine), the application's own share of a turn stayed under 25 ms at the 95th percentile with 100 concurrent stations, and one API process used about 225 MB. End-to-end turn latency with real ASR, TTS and a model examiner is **unmeasured** (no providers).
+- **Latency:** the deterministic examiner decides in under 1 ms in-process. In the load test (`docs/LOAD_TEST.md`; 4-vCPU container, everything on one machine), the application's own share of a turn stayed under 25 ms at the 95th percentile with 100 concurrent stations, and one API process used about 225 MB. End-to-end turn latency with real ASR, TTS and a model examiner is **unmeasured** (no providers). For scale, Gemini 4 Hydrogen took 1.1–6.2 s per small structured request at low thinking on the free tier (2026-11-16), so the live examiner's 2.5 s budget (`EXAMINER_LLM_TIMEOUT_MS`) will often fall back to the deterministic policy.
 - **Cost (projection):** with Claude Opus 5.5 at configured prices, from the real rendered prompts, about $0.25 per case for two-pass assessment and $0.04 per case for an LLM examiner. That is about $0.85 per 3-case station, excluding speech, storage and hosting. These are projections, not invoices.
 - **Reference labels:** all 25 intended judgments are developer-authored and **pending owner approval**. Agreement figures are therefore against developer labels, not against the owner.
 
@@ -78,7 +79,7 @@ Automated test totals at this commit: **122 vitest tests in 12 files** (plus 9 S
 
 1. **Case material from the owner:** the first package described in [CASE_AUTHORING.md](CASE_AUTHORING.md) §5, plus the rights basis. The cases are in the owner's Box and OneDrive. The simplest route is to run `pnpm intake "<Box Drive folder>"` on the owner's computer (CASE_AUTHORING.md §2.1), so raw images never leave it. Alternatives: attach a zip of the intake folder, or add a Box token in the environment's network secrets for the Box fetcher. Source material must be de-identified locally (`tools/ingestion`) before it enters the system.
 2. **Credentials** (test or development accounts), added through the environment's secure credential settings, never pasted into chat:
-   - Anthropic API key, for the examiner and assessment roles;
+   - an Anthropic or a Google Gemini API key (billing-enabled project), for the examiner and assessment roles;
    - Deepgram, and/or ElevenLabs, for server speech;
    - Stripe test-mode keys and a webhook secret;
    - a Supabase project, for production-grade auth.
@@ -92,7 +93,7 @@ Automated test totals at this commit: **122 vitest tests in 12 files** (plus 9 S
 
 ## Next concrete task
 
-When the first case package and an Anthropic key are available:
+When the first case package and a model key (Anthropic or Gemini) are available:
 
 1. Run `pnpm intake` on the first batch and review the held-back findings.
 2. Draft it with the LLM author.

@@ -1,6 +1,6 @@
 import type { CaseVersion } from "@sim/contracts";
 import { CaseVersion as CaseVersionSchema } from "@sim/contracts";
-import { approvalMatches, computeContentHashes, externalAiAllowed, validateCaseVersion } from "@sim/clinical-content";
+import { approvalMatches, computeContentHashes, externalAiAllowed, modelUseAllowed, validateCaseVersion } from "@sim/clinical-content";
 import { caseAuthorPrompt, clinicalCriticPrompt, rubricCriticPrompt, runPrompt, type AuthorOutput } from "@sim/ai";
 import { caseReviews, caseVersions, enqueue, eq, ownerReviewItems, sql } from "@sim/db";
 import type { WorkerDeps } from "../deps";
@@ -61,6 +61,10 @@ async function critique(deps: WorkerDeps, cv: CaseVersion, focus: "clinical" | "
   const reviewer = focus === "clinical" ? "clinical_critic" : "rubric_critic";
   const provider = deps.providerFor(reviewer);
   if (!provider) return { skipped: "no model configured" };
+  if (!modelUseAllowed(cv, deps.config.LLM_FIXTURES_ONLY)) {
+    await deps.db.insert(caseReviews).values({ caseVersionId: cv.versionId, reviewer, status: "unavailable", issues: [], summary: "Not run: LLM_FIXTURES_ONLY is set, so only fictional development fixtures are sent to the model." });
+    return { skipped: "LLM_FIXTURES_ONLY" };
+  }
   if (!externalAiAllowed(cv)) {
     await deps.db.insert(caseReviews).values({ caseVersionId: cv.versionId, reviewer, status: "unavailable", issues: [], summary: "Not run: external AI processing is not permitted for this case (privacy/rights clearance)." });
     return { skipped: "external AI not permitted" };
@@ -96,6 +100,7 @@ async function author(deps: WorkerDeps, cv: CaseVersion, p: Record<string, unkno
   const provider = deps.providerFor("case_author");
   if (!provider) return { skipped: "no model configured" };
   if (cv.publicationStatus !== "draft") return { skipped: "only drafts can be authored" };
+  if (!modelUseAllowed(cv, deps.config.LLM_FIXTURES_ONLY)) return { skipped: "LLM_FIXTURES_ONLY: only fictional development fixtures are sent to the model" };
   if (!externalAiAllowed(cv)) return { skipped: "external AI processing not permitted for this case" };
   const r = await runPrompt(
     caseAuthorPrompt,

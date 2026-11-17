@@ -1,6 +1,6 @@
-# Evaluation report 20261115225411-baseline
+# Evaluation report 20261117011418-baseline
 
-Generated 2026-11-15T22:54:11.598Z · code 95c7f36+uncommitted · profile abr-dr-neuro-oral@2026-11-15.1
+Generated 2026-11-17T01:14:18.443Z · code f761dcd+uncommitted · profile abr-dr-neuro-oral@2026-11-15.1
 
 - **Assessor under test:** development baseline (deterministic lexical matcher; NOT a clinical assessor; refused in production)
 - **Examiner policy under test:** deterministic approved-question policy (used when no examiner model is configured)
@@ -12,7 +12,7 @@ Generated 2026-11-15T22:54:11.598Z · code 95c7f36+uncommitted · profile abr-dr
 - The human reference is the owner's approved case truth, rubric anchors and selected ratings. Status of the response-pattern reference: pending owner approval 25; owner blind ratings imported for 0 pattern(s). **Until the owner approves the intended judgments, "agreement with reference" below means agreement with developer-authored labels, not with the owner.**
 - These are development fixtures (25 base responses across 3 fictional cases). They are not evidence of validity with real learners, and many responses per case are not independent.
 - Model agreement with a single human reference, or between models, is a consistency signal. It is not proof of clinical correctness, board endorsement or external validation.
-- Final split locked 2026-11-15T03:16:43.812Z; inputs unchanged. It has been evaluated 2 time(s) before this run under this lock.
+- Final split locked 2026-11-15T03:16:43.812Z; inputs unchanged. It has been evaluated 4 time(s) before this run under this lock — **repeated evaluation: treat final-split results as partially tuned, not unseen**.
 
 ## Release gates (initial pilot)
 
@@ -147,7 +147,7 @@ Not measured. Measuring learning requires consented longitudinal learner data, w
 - Forged actions (unknown alias, raw stage id, wrong alias type, unknown asset) rejected: 448/448 (100%)
 - Requests for unavailable/other information answered with the approved reply: 4/4 (100%)
 - Examiner spoke after a mid-thought pause: 0
-- Policy decision latency (in-process; excludes network, endpointing, speech synthesis): p50 0.04 ms, p95 0.32 ms.
+- Policy decision latency (in-process; excludes network, endpointing, speech synthesis): p50 0.03 ms, p95 0.19 ms.
 
 ## 6. Regression scenarios (spec §18)
 

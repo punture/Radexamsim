@@ -8,7 +8,7 @@ Reproducible evaluation of the assessment pipeline, the live examiner policy, an
 pnpm evals                       # run everything, write evals/reports/<id>.md and latest.md
 pnpm evals -- --skip-regression  # skip the mapped vitest run (e.g. no PostgreSQL)
 pnpm evals -- --variants base    # base responses only (no stability variants)
-pnpm evals -- --llm              # use the configured model assessor (needs ANTHROPIC_API_KEY; spends money)
+pnpm evals -- --llm              # use the configured model assessor (needs ANTHROPIC_API_KEY, or LLM_PROVIDER=gemini with GEMINI_API_KEY; spends money)
 pnpm evals -- --llm --llm-examiner
 pnpm evals:lock                  # lock the final split (do this BEFORE judging a change)
 pnpm evals:blind -- --sample 12 --duplicates 3

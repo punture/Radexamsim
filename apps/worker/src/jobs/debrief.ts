@@ -10,6 +10,7 @@ import {
   type CaseOption,
   type SkillObservation,
 } from "@sim/ai";
+import { modelUseAllowed } from "@sim/clinical-content";
 import {
   and,
   appendEvent,
@@ -69,7 +70,7 @@ export async function buildDebrief(deps: WorkerDeps, payload: { sessionId: strin
 
     // Optional model-written summary, accepted only if it stays within supported facts.
     const provider = deps.providerFor("feedback_writer");
-    if (provider && deps.config.USE_LLM_FEEDBACK_SUMMARY && a.payload.assessorKind !== "dev_baseline") {
+    if (provider && deps.config.USE_LLM_FEEDBACK_SUMMARY && a.payload.assessorKind !== "dev_baseline" && modelUseAllowed(cv, deps.config.LLM_FIXTURES_ONLY)) {
       const input = {
         caseLabel: label,
         ratingDisplay: debrief.overall.ratingDisplay,

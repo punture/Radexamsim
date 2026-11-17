@@ -171,5 +171,8 @@ describe("durable job queue", () => {
   });
   it("redacts credentials from stored errors", () => {
     expect(redactError(new Error("bad key sk_live_abc and Bearer eyJhbGci.x.y"))).not.toMatch(/sk_live_abc|eyJhbGci/);
+    // Built at runtime so the source holds no key-shaped literal for secret scanners.
+    const googleKey = `AIza${"x".repeat(35)}`;
+    expect(redactError(new Error(`request with ${googleKey} failed`))).not.toContain(googleKey);
   });
 });

@@ -695,7 +695,7 @@ Several worker processes can run at the same time; `SKIP LOCKED` gives each job 
     transaction.
   - Otherwise: status `queued`, `run_at = now + backoff`, where backoff is
     `min(10 minutes, 2 s × 2^(attempts − 1))`: 2 s, 4 s, 8 s and so on, up to 10 minutes.
-- `last_error` is redacted (Stripe keys, Anthropic keys and bearer tokens are masked) and cut to
+- `last_error` is redacted (Stripe keys, Anthropic keys, Google API keys and bearer tokens are masked) and cut to
   500 characters.
 - A lease expiry does not dead-letter a job by itself. `attempts` grows at each claim, but the
   dead-letter check runs only when a handler throws.

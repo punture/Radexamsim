@@ -1,4 +1,4 @@
-import { AnthropicProvider, DEFAULT_ASSESSMENT_POLICY, type AssessmentPolicy, type CallTelemetry, type LlmProvider, type PromptRole } from "@sim/ai";
+import { createLlmProvider, DEFAULT_ASSESSMENT_POLICY, type AssessmentPolicy, type CallTelemetry, type LlmProvider, type PromptRole } from "@sim/ai";
 import { createDb, eq, modelCalls, systemConfig, type Db } from "@sim/db";
 import { FIXTURE_MEDIA_DIR } from "@sim/fixtures";
 import { createStorage, type ObjectStorage } from "@sim/storage";
@@ -17,7 +17,7 @@ export type WorkerDeps = {
 
 export function buildWorkerDeps(config: WorkerConfig, over: Partial<WorkerDeps> = {}): WorkerDeps {
   const db = over.db ?? createDb(config.DATABASE_URL);
-  const anthropic = config.LLM_PROVIDER === "anthropic" && config.ANTHROPIC_API_KEY ? new AnthropicProvider({ apiKey: config.ANTHROPIC_API_KEY, enableServerSideFallbacks: config.LLM_SERVER_SIDE_FALLBACKS }) : null;
+  const llm = createLlmProvider(config);
   const model: Record<PromptRole, string | undefined> = {
     case_author: config.MODEL_CASE_AUTHOR,
     clinical_critic: config.MODEL_CRITIC,
@@ -34,7 +34,7 @@ export function buildWorkerDeps(config: WorkerConfig, over: Partial<WorkerDeps> 
     config,
     db,
     storage: over.storage ?? createStorage(config, { readOnlyFallbacks: config.ALLOW_FIXTURES ? { derivatives: FIXTURE_MEDIA_DIR } : {} }),
-    providerFor: over.providerFor ?? (() => anthropic),
+    providerFor: over.providerFor ?? (() => llm),
     modelFor: over.modelFor ?? ((role) => model[role] ?? config.MODEL_DEFAULT),
     now: over.now ?? (() => new Date()),
     recordModelCall:

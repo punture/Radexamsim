@@ -18,7 +18,7 @@ import type {
   ViewerPane,
 } from "@sim/contracts";
 import { ClientMessage as ClientMessageSchema, decodeBinaryFrame, encodeBinaryFrame, BINARY_FRAME_MIC, BINARY_FRAME_TTS, ExaminerProposal as ExaminerProposalSchema } from "@sim/contracts";
-import { caseTimeGuidanceMs } from "@sim/clinical-content";
+import { caseTimeGuidanceMs, modelUseAllowed } from "@sim/clinical-content";
 import {
   applyReveal,
   buildExaminerMenu,
@@ -1168,7 +1168,7 @@ export class LiveSession {
     let rejection: string | null = null;
     let model: string | null = null;
     const switches = await getSwitches(this.deps.db);
-    if (this.deps.llm && !switches.examinerLlmDisabled) {
+    if (this.deps.llm && !switches.examinerLlmDisabled && modelUseAllowed(cur.cv, this.deps.config.LLM_FIXTURES_ONLY)) {
       const r = await runPrompt(examinerPrompt, menu.context, {
         routing: { provider: this.deps.llm, model: this.deps.examinerModel, timeoutMs: this.deps.config.EXAMINER_LLM_TIMEOUT_MS },
         spend: this.spend,

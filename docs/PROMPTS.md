@@ -6,16 +6,16 @@ Every model call records `promptId`, `promptVersion`, the provider, the requeste
 
 ## Rules common to every role
 
-- **Structured output only.** Calls use the provider's structured-output mode (`messages.parse` with a Zod output format). Invalid output gets a bounded number of schema repairs, then retries, then an explicit failure (`invalid_output`, `refused`, `timeout`, `provider_error`). No caller invents a result on failure.
+- **Structured output only.** Calls use the provider's structured-output mode: Anthropic's `messages.parse` with a Zod output format, or Gemini's `response_format` with a JSON schema derived from the same Zod schema (reduced to the keywords Google documents; the full Zod schema still validates every reply). Invalid output gets a bounded number of schema repairs, then retries, then an explicit failure (`invalid_output`, `refused`, `timeout`, `provider_error`). No caller invents a result on failure.
 - **Isolation.** Each role receives only what it needs:
   - the live examiner never receives clinical truth, the rubric or authored IDs; it sees one-time aliases only;
   - assessors receive the clinical truth and rubric but not the other assessor's output;
   - candidate speech is wrapped as data and never treated as instructions.
-- **No private chain-of-thought is requested or stored.** Prompts ask for short rationales tied to evidence. Adaptive thinking may be enabled on the provider side, but the thinking content is not persisted.
+- **No private chain-of-thought is requested or stored.** Prompts ask for short rationales tied to evidence. Adaptive thinking may be enabled on the provider side, but the thinking content is not persisted. With Gemini, effort maps to `thinking_level`, thought summaries are switched off and thought steps are never read.
 - **No tools that act.** Models get no SQL, shell, file, account-administration or billing tools. Examiner proposals are validated against the issued menu; nothing a model emits is executed as code.
 - **Kill switches and spend caps.** The owner can disable the examiner and assessment roles in **Configuration**. A per-session spend cap (`SESSION_SPEND_CAP_USD`, default $3) stops further calls.
-- **Model routing is configuration.** `MODEL_DEFAULT` (default `claude-opus-5-5`) can be overridden per role: `MODEL_LIVE_EXAMINER`, `MODEL_EVIDENCE_EXTRACTOR`, `MODEL_ASSESSOR_A`, `MODEL_ASSESSOR_B`, `MODEL_ADJUDICATOR`, `MODEL_FEEDBACK_WRITER`, `MODEL_LEARNING_PLAN`, `MODEL_CASE_AUTHOR` and `MODEL_CRITIC`. Prices live in `DEFAULT_PRICES` (`packages/ai/src/llm/runner.ts`) and must be checked against current provider pricing before cost reports are trusted.
-- **Server-side refusal fallbacks** (Anthropic beta) are enabled by default in the provider adapter (`LLM_SERVER_SIDE_FALLBACKS`). When the primary model declines, the provider may serve a fallback model; the served model is recorded per call.
+- **Model routing is configuration.** `LLM_PROVIDER` picks Anthropic or Gemini. `MODEL_DEFAULT` (default `claude-opus-5-5`, or `gemini-4-hydrogen` with `LLM_PROVIDER=gemini`) can be overridden per role: `MODEL_LIVE_EXAMINER`, `MODEL_EVIDENCE_EXTRACTOR`, `MODEL_ASSESSOR_A`, `MODEL_ASSESSOR_B`, `MODEL_ADJUDICATOR`, `MODEL_FEEDBACK_WRITER`, `MODEL_LEARNING_PLAN`, `MODEL_CASE_AUTHOR` and `MODEL_CRITIC`. Prices live in `DEFAULT_PRICES` (`packages/ai/src/llm/runner.ts`) and must be checked against current provider pricing before cost reports are trusted.
+- **Server-side refusal fallbacks** (Anthropic beta; the Gemini adapter has none) are enabled by default in the Anthropic adapter (`LLM_SERVER_SIDE_FALLBACKS`). When the primary model declines, the provider may serve a fallback model; the served model is recorded per call.
 
 ## Roles
 
@@ -42,4 +42,4 @@ The exact Zod input and output schemas are next to each template: `examiner.ts`,
 
 ## Live verification status
 
-None of the model roles has been exercised against the live provider from this build environment, because no API key was available. The adapters, structured-output parsing, retries and fallbacks are tested with a scripted provider (`ScriptedLlmProvider`). Real latency, refusal rates and output quality are unmeasured until a key is configured.
+No model role has run a real session against a live provider. On 2026-11-16, with a free-tier Gemini key and no case data, Google accepted a test request and every role's output schema (as converted by the Gemini adapter), each with valid output. Anthropic has not been called at all. The pipeline's parsing, retries and fallbacks are tested with a scripted provider (`ScriptedLlmProvider`), and the Gemini adapter's requests and response mapping against a local mock of Google's Interactions API. The prompts were written for Claude; with Gemini 4 Hydrogen their quality is unmeasured until `pnpm evals -- --llm` runs on the tuning split. Real latency, refusal rates and output quality are unmeasured until a key is configured.

@@ -189,7 +189,7 @@ Rules for every restore:
 1. Pick a random restore point within the point-in-time window.
 2. Restore the database and the storage snapshot into an isolated environment. Use no production credentials for providers, and no Stripe webhook endpoint.
 3. Run §6.2 steps 4–7.
-4. Start the worker and the API in the isolated environment with outbound access to providers blocked and Stripe unset. The API's production checks require `LLM_PROVIDER=anthropic` with a key value; a placeholder value is enough while outbound calls are blocked. Confirm that `GET /api/health` returns `ok: true`. Where sign-in is available, have the owner open a published case's images.
+4. Start the worker and the API in the isolated environment with outbound access to providers blocked and Stripe unset. The API's production checks require `LLM_PROVIDER=anthropic` or `gemini` with that provider's key; a placeholder value is enough while outbound calls are blocked. Confirm that `GET /api/health` returns `ok: true`. Where sign-in is available, have the owner open a published case's images.
 5. Measure how long each step took. Compare with the recovery time objective.
 6. Destroy the drill environment and its copies of the data.
 

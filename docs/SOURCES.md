@@ -6,7 +6,7 @@ Facts that affect product behaviour or public claims are tracked with their sour
 |---|---|---|
 | [sources/board_sources.md](sources/board_sources.md) | ABR DR oral exam (format, cohort, 68–72 scale, pass rule, images, scope); RCPSC DR applied exam (station table, format, GRS approach); unresolved conflicts; `sourceRegistry` entries referenced by the profiles | Search-engine snippets restricted to official domains; S2/S1/P codes. Official pages were not fetched |
 | [sources/speech_providers.md](sources/speech_providers.md) | Deepgram streaming ASR and Aura TTS, ElevenLabs TTS with timestamps, the browser Web Speech API (recognition and synthesis boundaries), latency and privacy notes | Search excerpts of vendor documentation; [V]/[V?]/[S]/[U] tags. JSON examples were rebuilt from documented field names |
-| [sources/platform_docs.md](sources/platform_docs.md) | Anthropic SDK structured output, Stripe API version and webhook typings, Next.js 16, Fastify, Drizzle, Supabase JWT verification, Cornerstone3D, DICOM confidentiality profile | Package typings and READMEs from npm/PyPI ([PKG]), vendor documentation sources on GitHub ([DOC-SRC]), search snippets |
+| [sources/platform_docs.md](sources/platform_docs.md) | Anthropic SDK structured output, Gemini Interactions API and Gemini 4 Hydrogen (§6), Stripe API version and webhook typings, Next.js 16, Fastify, Drizzle, Supabase JWT verification, Cornerstone3D, DICOM confidentiality profile | Package typings and READMEs from npm/PyPI ([PKG]), vendor documentation sources on GitHub ([DOC-SRC]), search snippets |
 
 ## Hosts to allow for direct verification
 

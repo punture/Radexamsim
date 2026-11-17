@@ -56,3 +56,12 @@ export function externalAiAllowed(cv: CaseVersion): boolean {
     (cv.isDevelopmentFixture || (cv.source.privacyStatus === "approved" && cv.clearances.privacy?.status === "cleared"))
   );
 }
+
+/**
+ * LLM_FIXTURES_ONLY is set when the model provider may keep or reuse what it receives (for
+ * example a free-tier Gemini key). Then only fictional development fixtures may reach a model,
+ * in every role: examiner, assessment, feedback, author and critics.
+ */
+export function modelUseAllowed(cv: Pick<CaseVersion, "isDevelopmentFixture">, fixturesOnly: boolean): boolean {
+  return !fixturesOnly || cv.isDevelopmentFixture;
+}

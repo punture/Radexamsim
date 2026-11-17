@@ -35,16 +35,31 @@ export type CallTelemetry = {
   simulated: boolean;
 };
 
-/** USD per million tokens. Configurable; defaults from the Claude API reference (2026-11). */
+/**
+ * USD per million tokens. Configurable. Claude: Claude API reference (2026-11). Gemini 4
+ * Hydrogen: Google's Gemini API pricing page (read 2026-11-16), paid Standard tier; cache
+ * reads are implicit-caching hits, and thinking tokens are billed as output. A key from a
+ * project without billing runs on Google's free tier, which these estimates do not model.
+ */
 export type PriceTable = Record<string, { input: number; output: number; cacheRead: number; cacheWrite: number }>;
 export const DEFAULT_PRICES: PriceTable = {
   "claude-opus-5-5": { input: 4, output: 20, cacheRead: 0.2, cacheWrite: 5 },
   "claude-sonnet-5-5": { input: 2, output: 10, cacheRead: 0.1, cacheWrite: 2.5 },
   "claude-haiku-5-5": { input: 0.1, output: 0.5, cacheRead: 0.01, cacheWrite: 0.125 },
+  "gemini-4-hydrogen": { input: 1.5, output: 7.5, cacheRead: 0.075, cacheWrite: 0 },
 };
 
+/** Exact id, else the longest priced id the served id extends (for example "gemini-4-hydrogen-001"). */
+export function priceFor(model: string, prices: PriceTable = DEFAULT_PRICES): PriceTable[string] | undefined {
+  if (prices[model]) return prices[model];
+  const base = Object.keys(prices)
+    .filter((k) => model.startsWith(`${k}-`))
+    .sort((a, b) => b.length - a.length)[0];
+  return base ? prices[base] : undefined;
+}
+
 export function estimateCostUsd(model: string, u: LlmUsage, prices: PriceTable = DEFAULT_PRICES): number {
-  const p = prices[model];
+  const p = priceFor(model, prices);
   if (!p) return 0;
   return (u.inputTokens * p.input + u.outputTokens * p.output + u.cacheReadTokens * p.cacheRead + u.cacheWriteTokens * p.cacheWrite) / 1_000_000;
 }

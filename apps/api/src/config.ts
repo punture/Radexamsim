@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { DEFAULT_MODEL, LLM_PROVIDERS, llmSettingsProblems } from "@sim/ai";
 import { StorageEnvSchema, checkStorageEnv } from "@sim/storage";
 
 /**
@@ -26,13 +27,17 @@ export const ConfigSchema = z.object({
   /** STORAGE_DRIVER, STORAGE_LOCAL_ROOT and S3_*: shared with the worker (packages/storage). */
   ...StorageEnvSchema.shape,
 
-  LLM_PROVIDER: z.enum(["anthropic", "none"]).default("none"),
+  LLM_PROVIDER: z.enum(LLM_PROVIDERS).default("none"),
   ANTHROPIC_API_KEY: z.string().optional(),
-  MODEL_DEFAULT: z.string().default("claude-opus-5-5"),
+  GEMINI_API_KEY: z.string().optional(),
+  /** When unset, loadConfig uses the provider's default (DEFAULT_MODEL in @sim/ai). */
+  MODEL_DEFAULT: z.string().default(DEFAULT_MODEL.anthropic),
   MODEL_LIVE_EXAMINER: z.string().optional(),
   EXAMINER_LLM_TIMEOUT_MS: z.coerce.number().int().default(2500),
   SESSION_SPEND_CAP_USD: z.coerce.number().default(3),
   LLM_SERVER_SIDE_FALLBACKS: bool(true),
+  /** Only development fixtures reach the model (for a key whose provider may reuse content). Refused in production. */
+  LLM_FIXTURES_ONLY: bool(false),
 
   /** browser: Web Speech API in the learner's browser (labelled; vendor-processed audio). */
   ASR_PROVIDER: z.enum(["browser", "deepgram", "dev_injection_only"]).default("browser"),
@@ -64,6 +69,7 @@ export type Config = z.infer<typeof ConfigSchema>;
 
 export function loadConfig(env: Record<string, string | undefined> = process.env): Config {
   const c = ConfigSchema.parse(env);
+  if (c.LLM_PROVIDER !== "none" && !env.MODEL_DEFAULT) c.MODEL_DEFAULT = DEFAULT_MODEL[c.LLM_PROVIDER];
   if (c.NODE_ENV === "production") {
     const problems: string[] = [];
     if (c.ALLOW_DEV_INJECTION) problems.push("ALLOW_DEV_INJECTION must be false in production");
@@ -72,10 +78,12 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     if (c.AUTH_ENCRYPTION_KEY.startsWith("dev-only")) problems.push("AUTH_ENCRYPTION_KEY must be set");
     if (!c.OWNER_MFA_REQUIRED) problems.push("OWNER_MFA_REQUIRED must be true in production");
     if (c.LLM_PROVIDER === "none") problems.push("an assessment model is required in production (the development baseline is not permitted)");
+    if (c.LLM_FIXTURES_ONLY) problems.push("LLM_FIXTURES_ONLY is for development keys; production needs a provider tier that does not reuse submitted content");
     if (problems.length) throw new Error(`Unsafe production configuration:\n - ${problems.join("\n - ")}`);
   }
   if (c.AUTH_PROVIDER === "supabase" && !c.SUPABASE_URL) throw new Error("SUPABASE_URL is required for AUTH_PROVIDER=supabase");
-  if (c.LLM_PROVIDER === "anthropic" && !c.ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is required for LLM_PROVIDER=anthropic");
+  const llmProblems = llmSettingsProblems(c, [c.MODEL_DEFAULT, c.MODEL_LIVE_EXAMINER]);
+  if (llmProblems.length) throw new Error(llmProblems.join("; "));
   checkStorageEnv(c, c.NODE_ENV);
   return c;
 }

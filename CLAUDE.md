@@ -66,5 +66,6 @@ Before committing a change that touches assessment, examiner policy, prompts or 
 ## Current status (summary)
 
 - **Working end to end with fixtures:** case selection, preflight, spoken exam (WebSocket controller, deterministic examiner, browser speech), image stages, evidence-linked assessment (two-pass pipeline; dev baseline without keys), debrief, learning plan, results after sign-in, appeals, the owner console (import, author, critique, approve, publish, revise, retire, withdraw, resolve disputes), billing ledger, privacy jobs, and the evaluation harness.
+- **Partly live-verified:** Google Gemini models (Gemini 4 Hydrogen by default, `LLM_PROVIDER=gemini`): the request format and every role's output schema were accepted live on 2026-11-16 (free-tier key, no case data); no full session or model evals yet. A free-tier key needs `LLM_FIXTURES_ONLY=true`.
 - **Implemented but not live-verified:** Anthropic models, Deepgram ASR, ElevenLabs and Deepgram TTS, Supabase auth, Stripe, and the S3-compatible storage driver (tested against moto). No credentials were available.
 - **Missing:** approved clinical cases (owner content), the Cornerstone3D DICOM viewer, a hosting decision and deployment.

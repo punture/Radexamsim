@@ -8,11 +8,20 @@ import {
   classifyChange,
   computeContentHashes,
   displayRating,
+  modelUseAllowed,
   publicationGate,
   validateCaseVersion,
 } from "../src";
 
 const clone = <T,>(v: T): T => JSON.parse(JSON.stringify(v)) as T;
+
+describe("modelUseAllowed (LLM_FIXTURES_ONLY)", () => {
+  it("lets only development fixtures reach a model when fixturesOnly is set", () => {
+    expect(modelUseAllowed({ isDevelopmentFixture: true }, true)).toBe(true);
+    expect(modelUseAllowed({ isDevelopmentFixture: false }, true)).toBe(false);
+    expect(modelUseAllowed({ isDevelopmentFixture: false }, false)).toBe(true);
+  });
+});
 
 function approve(cv: CaseVersion): CaseVersion {
   const h = computeContentHashes(cv);

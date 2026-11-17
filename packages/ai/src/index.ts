@@ -1,6 +1,8 @@
 export * from "./llm/types";
 export * from "./llm/runner";
 export { AnthropicProvider } from "./llm/anthropic";
+export { GeminiProvider, toGeminiSchema, thinkingLevel } from "./llm/gemini";
+export * from "./llm/providers";
 export { ScriptedLlmProvider, type ScriptedHandler } from "./llm/scripted";
 export * from "./prompts/examiner";
 export * from "./prompts/assessment";

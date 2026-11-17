@@ -1,5 +1,5 @@
 import {
-  AnthropicProvider,
+  createLlmProvider,
   DeepgramAsrProvider,
   DeepgramTtsProvider,
   ElevenLabsTtsProvider,
@@ -39,12 +39,7 @@ export type Deps = {
 export function buildDeps(config: Config, overrides: Partial<Deps> = {}): Deps {
   const db = overrides.db ?? createDb(config.DATABASE_URL);
   const storage = overrides.storage ?? createStorage(config, { readOnlyFallbacks: config.ALLOW_FIXTURES ? { derivatives: FIXTURE_MEDIA_DIR } : {} });
-  const llm =
-    overrides.llm !== undefined
-      ? overrides.llm
-      : config.LLM_PROVIDER === "anthropic" && config.ANTHROPIC_API_KEY
-        ? new AnthropicProvider({ apiKey: config.ANTHROPIC_API_KEY, enableServerSideFallbacks: config.LLM_SERVER_SIDE_FALLBACKS })
-        : null;
+  const llm = overrides.llm !== undefined ? overrides.llm : createLlmProvider(config);
   const asr =
     overrides.asr !== undefined
       ? overrides.asr

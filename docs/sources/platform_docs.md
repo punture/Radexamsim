@@ -780,6 +780,24 @@ From `jwt-fields.mdx`, verbatim lists.
 
 ---
 
+## 6. Google Gemini API: Gemini 4 Hydrogen (read for `packages/ai/src/llm/gemini.ts`)
+
+Accessed **2026-11-16**. The official pages below were fetched as rendered pages through a summarizing fetch tool, so the wording here is paraphrase, not quotation. A live check the same day (free-tier key, no case data) confirmed the request as the adapter composes it (`input` as a string, `system_instruction`, `response_format`, `generation_config` with `thinking_level` and `thinking_summaries: "none"`, `store: false`) and that every role's output schema, as converted, is accepted. The response carried `model: "gemini-4-hydrogen"`, `status: "completed"` and a `model_output` text step. Two of the requests first got HTTP 503 and succeeded on retry.
+
+- **Model** (blog.google, "Introducing Gemini 4 Hydrogen"): id `gemini-4-hydrogen`, launched 2026-11-12. $1.50 per million input tokens and $7.50 per million output tokens, flat across the 1M-token context. Thinking levels `low`, `medium`, `high` and `xhigh`; the default is `high`.
+- **Pricing page** (https://aistudio.google.com/docs/pricing): paid Standard tier, per million tokens: input $1.50, output $7.50 (including thinking tokens), context caching $0.075 (implicit caching only). Batch and Flex $0.75 / $3.75; Priority $2.70 / $13.50. The free tier lists Hydrogen's input, output and caching as free of charge, with content used to improve Google's products. Gemini 4 Carbon and Argon have no free tier.
+- **Interactions API v1 reference** (https://aistudio.google.com/api-reference/interactions-api?api-version=v1):
+  - `POST /v1/interactions` with the `x-goog-api-key` header.
+  - Body: `model`; `input` (a string, a content array or a step array); `system_instruction` (string); `generation_config` (`thinking_level`, `thinking_summaries`, `max_output_tokens`, `seed`, `stop_sequences`, `tool_choice`, `video_config`; no `temperature` listed); top-level `response_format` (`type: "text"`, `mime_type: "application/json"`, `schema`); `store`; `background`.
+  - Interaction: `id`, `model`, `status` (`in_progress`, `requires_action`, `completed`, `failed`, `cancelled`, `incomplete`, `requires_continuation`), `steps` (a `thought` step has `signature` and an optional `summary`; a `model_output` step has `{ "type": "text", "text": … }` content), `usage` (`total_input_tokens`, `total_cached_tokens`, `total_output_tokens`, `total_thought_tokens`, `total_tokens`, per-modality arrays), `errors` (`code`, `message`).
+- **Interactions guide** (https://aistudio.google.com/docs/interactions): `store` defaults to true. Stored interactions are kept 55 days on the paid tier and 1 day on the free tier.
+- **Structured output** (https://aistudio.google.com/docs/structured-output): supported keywords are the types (nullable through a type array), `title`, `description`, `properties`, `required`, `additionalProperties`, `enum`, `format` (`date-time`, `date`, `time`), `minimum`, `maximum`, `items`, `prefixItems`, `minItems`, `maxItems`, `anyOf`, and `$ref`/`$defs`. `minLength`, `maxLength`, `uniqueItems`, `contains` and `min/maxProperties` are ignored. A schema that is too complex returns 400 `INVALID_ARGUMENT`. `const` and `pattern` are not mentioned.
+- **Thinking** (https://aistudio.google.com/docs/thinking): thought text is not returned by default; `thinking_summaries: "auto"` returns summaries. Thinking tokens are billed as output.
+- **Terms** (https://aistudio.google.com/docs/terms): on unpaid services Google may use prompts and responses to improve its products and human reviewers may read them, and users must not submit sensitive or personal information there. Paid services (a Cloud project with active billing) are not used to improve products; prompts and responses are logged for a limited time for abuse prevention and legal reasons. The services may not be used in clinical practice or for medical advice.
+- `generateContent` is described as legacy but still supported **[SEARCH]**.
+
+---
+
 ## Unverified / open items
 
 1. **Stripe page wording.** docs.stripe.com wording in §1a and §1c comes from search snippets; I did not fetch the pages. In particular:
@@ -802,3 +820,8 @@ From `jwt-fields.mdx`, verbatim lists.
    - per-attribute codes, which come from a third-party scrape of an older edition
 7. **Next.js 16.4 release date.** Search sources disagree between 2026-09-29 and 2026-10-06.
 8. **TypeScript 7 in the wider toolchain.** Compatibility of TS 7 with Vitest typecheck, drizzle-kit and @fastify/swagger type providers was not checked. Only typescript-eslint's peer range (<6.1.0) and Next's CLI type-check path were verified.
+9. **Gemini Interactions API (§6), assumed by the adapter and not confirmed:**
+   - that `total_input_tokens` includes `total_cached_tokens`;
+   - the body of a non-streaming HTTP error (taken to be Google's usual `{ "error": { "code", "message", "status" } }`);
+   - how a safety block appears (taken to be a `failed` interaction whose error mentions safety);
+   - the free tier's request limits for Hydrogen, which Google shows per project in AI Studio rather than on the rate-limits page.

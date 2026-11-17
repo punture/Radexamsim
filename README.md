@@ -50,6 +50,8 @@ Without model keys, `pnpm dev` enables the **development baseline assessor**. It
 
 Configuration is in environment variables. Copy `.env.example` to `.env` and adjust it; `pnpm dev` loads `.env` if present. Never commit `.env`.
 
+Model provider: `LLM_PROVIDER=anthropic` with `ANTHROPIC_API_KEY` (Claude Opus 5.5 by default), or `LLM_PROVIDER=gemini` with `GEMINI_API_KEY` (Gemini 4 Hydrogen by default; use a billing-enabled Google Cloud project, see `.env.example`). A free-tier Gemini key is for development only: also set `LLM_FIXTURES_ONLY=true`, so only the fictional fixture cases reach the model. Both adapters are untested against the live services. Enable either only after the owner has authorized sending case text and learner transcripts to that provider.
+
 ## Tests and checks
 
 ```bash
@@ -101,7 +103,7 @@ docs                 architecture, API, events, data model, profiles, authoring,
 |---|---|
 | `ECONNREFUSED 127.0.0.1:5432` | `pnpm db:start`, then `bash scripts/dev-db.sh status` (Windows: `node scripts/platform.mjs dev-db status`) |
 | Tests fail with "database … does not exist" | The vitest global setup rebuilds the test template on each run; check that the `sim` role has `CREATEDB` (`pnpm db:start` creates it) |
-| Results say "assessment unavailable" | No assessment model is configured and the dev baseline is off. Set `ALLOW_DEV_BASELINE_ASSESSOR=true` for the worker (development only), or configure `LLM_PROVIDER=anthropic` with a key |
+| Results say "assessment unavailable" | No assessment model is configured and the dev baseline is off. Set `ALLOW_DEV_BASELINE_ASSESSOR=true` for the worker (development only), or configure `LLM_PROVIDER=anthropic` or `LLM_PROVIDER=gemini` with that provider's key |
 | The microphone prompt never appears | Browsers allow the microphone only on secure origins; use `http://localhost:3000`, not a LAN IP |
 | "Consent required" when speaking | Record microphone consent (and browser-speech consent) in station setup or Account |
 | No speech recognition option | Browser recognition needs Chrome or Edge; otherwise configure server ASR (`ASR_PROVIDER=deepgram`) |

@@ -3,7 +3,7 @@
 > **Status, 2026-11-15.** Nothing has been deployed.
 >
 > - No hosting provider has been chosen or purchased.
-> - No live credentials exist: no Anthropic, Deepgram, ElevenLabs, Supabase or Stripe keys, not even test-mode keys.
+> - No live credentials exist: no Anthropic, Google Gemini, Deepgram, ElevenLabs, Supabase or Stripe keys, not even test-mode keys.
 >
 > This document is a plan, not a record of a deployment. Several steps below need the owner's separate, explicit authorization. They are marked **[owner authorization]**: buying a service, making the system reachable from the internet, inviting users, enabling a paid provider, and anything that can move money.
 
@@ -77,9 +77,10 @@ These were found by reading and running the code on 2026-11-15. Each must be res
   - `AUTH_PROVIDER=supabase`
   - `AUTH_ENCRYPTION_KEY` does not start with `dev-only`
   - `OWNER_MFA_REQUIRED=true`
-  - `LLM_PROVIDER=anthropic`
+  - `LLM_PROVIDER=anthropic` or `LLM_PROVIDER=gemini` (not `none`)
+  - `LLM_FIXTURES_ONLY=false` (the worker refuses it too)
 
-  It also requires `SUPABASE_URL` when auth is Supabase, and `ANTHROPIC_API_KEY` when the provider is Anthropic. It does **not** refuse `ASR_PROVIDER=dev_injection_only`, which would leave no working voice input in production, so check that by hand.
+  It also requires `SUPABASE_URL` when auth is Supabase, `ANTHROPIC_API_KEY` when the provider is Anthropic, and `GEMINI_API_KEY` when it is Gemini. The API and the worker also refuse model ids from the other provider (for example a `claude-` id with `LLM_PROVIDER=gemini`). It does **not** refuse `ASR_PROVIDER=dev_injection_only`, which would leave no working voice input in production, so check that by hand.
 - **Live examination socket.**
   1. The browser asks for a single-use ticket: `POST /api/sessions/:id/ws-ticket`. Tickets live 60 seconds and are held **in memory** (`apps/api/src/live/tickets.ts`).
   2. It then opens `${PUBLIC_API_WS_URL}/ws?ticket=…`.
@@ -187,16 +188,20 @@ Setup, settings and the S3 startup check are in [STORAGE.md](STORAGE.md). In bri
 
 | Service | Called from | What is sent | Enabled by |
 |---|---|---|---|
-| Anthropic | API (live examiner) | Per-turn menu: stage history text, approved question and reply text, the conversation so far | `LLM_PROVIDER=anthropic` + key; kill switch `examinerLlmDisabled` |
-| Anthropic | Worker (assessment, optional feedback summary) | Learner transcript, rubric, key findings, opportunity records; assessed facts and quotes | Same; kill switch `assessmentLlmDisabled`; `USE_LLM_FEEDBACK_SUMMARY` |
-| Anthropic | Worker (case author, critics) | Case JSON without image files, the owner's notes and teaching text | Same, **and** the case passes `externalAiAllowed()` |
+| Anthropic or Google (Gemini), whichever `LLM_PROVIDER` names | API (live examiner) | Per-turn menu: stage history text, approved question and reply text, the conversation so far | `LLM_PROVIDER=anthropic` or `gemini` + that provider's key; kill switch `examinerLlmDisabled` |
+| Same provider | Worker (assessment, optional feedback summary) | Learner transcript, rubric, key findings, opportunity records; assessed facts and quotes | Same; kill switch `assessmentLlmDisabled`; `USE_LLM_FEEDBACK_SUMMARY` |
+| Same provider | Worker (case author, critics) | Case JSON without image files, the owner's notes and teaching text | Same, **and** the case passes `externalAiAllowed()` |
 | Deepgram | API | Learner microphone audio (`ASR_PROVIDER=deepgram`, after `microphone_processing` consent; `mip_opt_out=true`); examiner text (`TTS_PROVIDER=deepgram`) | Key + provider setting; kill switches `serverAsrDisabled`, `serverTtsDisabled` |
 | ElevenLabs | API | Examiner text | Key + voice id; kill switch `serverTtsDisabled` |
 | Browser vendor | Learner's browser | Microphone audio, when `ASR_PROVIDER=browser` (needs `browser_speech_vendor` consent) | Default setting |
 | Supabase | API | Nothing sensitive: the API fetches the public signing keys (JWKS) | `AUTH_PROVIDER=supabase` |
 | Stripe | API, and Stripe to API | Customer email and user id (metadata), checkout and portal requests; Stripe sends signed webhooks | Stripe keys and price ids |
 
-No code path sends image pixels to a model (`packages/ai/src/llm/anthropic.ts` supports images, but no caller passes any). Each provider needs the owner's authorization and a data-processing review before it is enabled. See also B5.
+No code path sends image pixels to a model (`packages/ai/src/llm/anthropic.ts` supports images, but no caller passes any; `packages/ai/src/llm/gemini.ts` refuses them). Each provider needs the owner's authorization and a data-processing review before it is enabled. See also B5.
+
+Owner preview (`POST /api/owner/case-versions/:versionId/preview`) runs the examiner and assessment roles on any version, drafts included, so a draft's text reaches the configured provider during a preview. The per-case external-AI clearance gates only the author and critics. With `LLM_FIXTURES_ONLY=true` (development only) no role sends anything but the fictional fixtures; real cases run as if no model were configured.
+
+Gemini specifics (`packages/ai/src/llm/gemini.ts`): requests set `store: false`, because Google's Interactions API otherwise keeps each interaction for later retrieval (55 days on the paid tier). Use a key from a Google Cloud project with billing enabled: on the unpaid tier Google may use prompts and responses to improve its products and human reviewers may read them. A free-tier key is for development only, together with `LLM_FIXTURES_ONLY=true`. Google's terms also bar use in clinical practice or for medical advice; this product is exam practice, and the owner should confirm that reading before enabling it.
 
 ### 3.7 The only topology the current code supports without changes
 
@@ -435,7 +440,7 @@ Permissions-Policy: microphone=(self), camera=(), geolocation=()
 3. **Managed authentication:** provider and project settings (email confirmation, owner MFA, open or invite-only sign-up), and approval of the engineering work for B1.
 4. **Database hosting and backup policy:** recovery point and recovery time objectives, backup retention (BACKUP_RESTORE.md).
 5. **Storage:** a single host with a shared encrypted volume, or an S3-compatible provider and region for the `s3` driver (B3, STORAGE.md).
-6. **External processors.** For each of Anthropic, Deepgram, ElevenLabs and Stripe: whether it is used, its data-processing terms, and spending limits. Whether learner audio may go to Deepgram, to the learner's browser vendor, or to neither.
+6. **External processors.** For each of Anthropic or Google (Gemini), Deepgram, ElevenLabs and Stripe: whether it is used, its data-processing terms, and spending limits. Whether learner audio may go to Deepgram, to the learner's browser vendor, or to neither.
 7. **Model processing of published case text** in live examining and assessment, given B5.
 8. **Staging content:** no clinical content, or specific approved cases (§4).
 9. **Domains and the product name.** `NEXT_PUBLIC_BRAND_NAME` defaults to the working name "NeuroOral Practice".

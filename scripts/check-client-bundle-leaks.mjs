@@ -52,6 +52,7 @@ const serverMarkers = [
   ["server-only package", "fastify"],
   ["server-only package", "@aws-sdk/client-s3"],
   ["secret name", "ANTHROPIC_API_KEY"],
+  ["secret name", "GEMINI_API_KEY"],
   ["secret name", "S3_SECRET_ACCESS_KEY"],
   ["secret name", "STRIPE_SECRET_KEY"],
   ["secret name", "STRIPE_WEBHOOK_SECRET"],
