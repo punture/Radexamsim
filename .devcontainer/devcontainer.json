@@ -9,11 +9,11 @@
   },
   // Once, when the codespace is created: PostgreSQL 16, pnpm and the workspace packages.
   "postCreateCommand": "bash .devcontainer/setup.sh",
-  // At every start: write this codespace's .env, then start the database, API, worker and website.
-  "postStartCommand": "bash .devcontainer/start.sh",
-  // Whenever the editor connects: follow the app log. GitHub counts terminal output as activity,
+  // Whenever the editor connects: write this codespace's .env and run the database, API, worker
+  // and website in a terminal, or follow the log if they already run. (Codespaces stops processes
+  // that a postStartCommand leaves in the background.) GitHub counts terminal output as activity,
   // so the codespace stays awake while the site is in use and the editor tab is open.
-  "postAttachCommand": "bash .devcontainer/logs.sh",
+  "postAttachCommand": "bash .devcontainer/start.sh",
   "portsAttributes": {
     "3000": { "label": "Exam Sim (keep private)", "onAutoForward": "openBrowser" }
   },

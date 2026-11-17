@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
-# Runs at every start of the codespace (postStartCommand): writes this codespace's .env, then
-# starts PostgreSQL, the API, the worker and the website in the background with scripts/dev.sh.
-# Log: var/log/codespace-dev.log. See docs/runbooks/CODESPACES.md.
+# Runs whenever the editor connects to the codespace (postAttachCommand). Writes this codespace's
+# .env, then runs PostgreSQL, the API, the worker and the website in this terminal with
+# scripts/dev.sh, or follows the log if the app is already running. Output is also saved to
+# var/log/codespace-dev.log. See docs/runbooks/CODESPACES.md.
+#
+# The app runs in a terminal, not in the background, because Codespaces stops the processes a
+# postStartCommand leaves behind. Terminal output also counts as activity, so the codespace stays
+# awake while the site is in use.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -13,6 +18,7 @@ fi
 # This codespace's address for port 3000. The browser reaches the API only through the website
 # (/api/* and the live-examination socket /ws), so port 3000 is the only port forwarded.
 SITE="${CODESPACE_NAME}-3000.${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN}"
+
 # The owner's Codespaces secret may be named GEMINI_API_KEY or GEMINI. The key stays in the
 # environment of the processes started here and is never written to a file.
 if [ -z "${GEMINI_API_KEY:-}" ] && [ -n "${GEMINI:-}" ]; then export GEMINI_API_KEY="$GEMINI"; fi
@@ -25,7 +31,7 @@ if [ ! -f .env ] || [ "$(head -n 1 .env)" = "$MARK" ]; then
   if [ -n "${GEMINI_API_KEY:-}" ]; then LLM=gemini; else LLM=none; fi
   cat > .env <<EOF
 $MARK
-# Rewritten at every start. To keep your own edits, delete the first line.
+# Rewritten whenever the editor connects. To keep your own edits, delete the first line.
 # Private test copy: fictional fixtures only, testing mode on. Keep port 3000 private.
 DEV_AUTO_LOGIN=true
 LLM_PROVIDER=$LLM
@@ -36,11 +42,14 @@ NEXT_PUBLIC_API_WS_URL=wss://$SITE
 EOF
 fi
 
+LOG=var/log/codespace-dev.log
 mkdir -p var/log
+touch "$LOG"
 if (exec 3<>/dev/tcp/127.0.0.1/3000) 2>/dev/null; then
   echo "Exam Sim is already running at https://$SITE"
-  exit 0
+  echo "Following its log. Ctrl+C stops following; the app keeps running in its own terminal."
+  exec tail -n 40 -F "$LOG"
 fi
-echo "Starting Exam Sim (model: $(grep '^LLM_PROVIDER=' .env | cut -d= -f2)). Log: var/log/codespace-dev.log"
-setsid nohup bash scripts/dev.sh >>var/log/codespace-dev.log 2>&1 </dev/null &
-echo "The site will be at https://$SITE once the log shows the web server is ready."
+echo "Starting Exam Sim (model: $(grep '^LLM_PROVIDER=' .env | cut -d= -f2)) at https://$SITE"
+echo "It is ready when the website reports Ready. Ctrl+C in this terminal stops the app."
+bash scripts/dev.sh 2>&1 | tee -a "$LOG"
