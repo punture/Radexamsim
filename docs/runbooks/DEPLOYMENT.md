@@ -215,7 +215,7 @@ Worker (1 proc) ─┤
                  └─▶ shared private encrypted volume (STORAGE_LOCAL_ROOT)
 ```
 
-The WebSocket can live on its own API hostname, for example `PUBLIC_API_WS_URL=wss://api.example.org`. It can also share the web hostname if the proxy sends `/ws` to the API. In that case both `PUBLIC_API_WS_URL` and `NEXT_PUBLIC_API_WS_URL` hold the web origin with `wss://`. If the API has its own public hostname, expose only `/ws` there (and the webhook, if you route it that way). Every other route stays behind the web origin.
+The WebSocket can live on its own API hostname, for example `PUBLIC_API_WS_URL=wss://api.example.org`. It can also share the web hostname, either because the proxy sends `/ws` to the API or because it sends `/ws` to the web app, which forwards the upgrade to the API (rewrite in `apps/web/next.config.ts`; exercised with `next dev`, not yet with `next start`). In that case both `PUBLIC_API_WS_URL` and `NEXT_PUBLIC_API_WS_URL` hold the web origin with `wss://`. If the API has its own public hostname, expose only `/ws` there (and the webhook, if you route it that way). Every other route stays behind the web origin.
 
 ## 4. Environments and separation
 
