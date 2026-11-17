@@ -19,7 +19,7 @@ GitHub Free personal accounts include, each month, 120 core hours (60 hours on t
 
 ## First time
 
-1. Optional, for model-assessed results: on GitHub, **Settings → Codespaces → Secrets → New secret**. Name `GEMINI_API_KEY`, value the free-tier key, and give this repository access. Without it, results come from the labelled development baseline assessor.
+1. Optional, for model-assessed results: on GitHub, **Settings → Codespaces → Secrets → New secret**. Name `GEMINI_API_KEY` (`GEMINI` also works), value the free-tier key. Under **Repository access**, select this repository: a secret with no repository access never reaches a codespace. Without it, results come from the labelled development baseline assessor.
 2. On the repository page: **Code → Codespaces → … → New with options**. Choose the branch to test and the **2-core** machine, then create it.
 3. Setup runs by itself (`setup.sh`: PostgreSQL 16, pnpm and the packages; several minutes the first time). Then `start.sh` starts the app. When the website is ready it opens in a new tab; otherwise open the **Ports** tab, then port 3000, then **Open in browser**.
 
