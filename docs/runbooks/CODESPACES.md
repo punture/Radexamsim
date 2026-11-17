@@ -27,7 +27,7 @@ GitHub Free personal accounts include, each month, 120 core hours (60 hours on t
 
 ## Everyday use
 
-- **Start:** github.com/codespaces → the codespace → Open. The app starts in a terminal when the editor opens.
+- **Start:** github.com/codespaces → the codespace → Open. The app starts in a terminal when the editor opens. The site's address works only while the codespace runs: a stopped codespace answers it with "not found" (HTTP 404), and opening the address does not start it.
 - **Stay awake while testing:** keep the codespace's editor tab open. The app runs in its terminal, and GitHub counts terminal output as activity; traffic to the site alone does not count. Once activity ends, the codespace stops after the idle timeout: 30 minutes by default, adjustable from 5 to 240 minutes under Settings → Codespaces. GitHub also stops any codespace after 12 hours.
 - **Stop:** close the tabs and let it time out, or github.com/codespaces → … → Stop codespace. Ctrl+C in the app's terminal stops only the app. A station in progress when the app stops is paused. Reopened soon enough, it resumes; otherwise it is invalidated and its minutes are credited back ([DEPLOYMENT.md](DEPLOYMENT.md) §3.2).
 - **Log:** the app's terminal, also saved to `var/log/codespace-dev.log`.
