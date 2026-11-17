@@ -1,6 +1,6 @@
 # Private test copy in GitHub Codespaces
 
-> **Status, 2026-11-17.** Set up in `.devcontainer/`. Not yet verified end to end in a codespace.
+> **Status, 2026-11-17.** Run in a real codespace (2-core, US East). Checked there: setup, the app running in a terminal, the private site behind GitHub sign-in, testing mode, and a typed practice station over `wss://<site>/ws` (the examiner's questions arrived). Two fixes came out of that run (the app now runs from `postAttachCommand`, and `setup.sh` creates the database role); the role step was checked by re-running `setup.sh` in that codespace, not yet in a new one. Model-assessed results were not seen there: at the time, Google answered `gemini-4-hydrogen` requests with HTTP 503 ("currently experiencing high demand"), so the examiner used its scripted fallback and the assessment job kept retrying.
 
 A codespace runs the development setup on GitHub's machines instead of the owner's computer: PostgreSQL, the API, the worker and the website. It uses the fictional fixtures, testing mode and, optionally, Gemini on a free-tier key. It is a private test copy, not staging or production; those are planned in [DEPLOYMENT.md](DEPLOYMENT.md).
 
@@ -23,7 +23,7 @@ GitHub Free personal accounts include, each month, 120 core hours (60 hours on t
 2. On the repository page: **Code → Codespaces → … → New with options**. Choose the branch to test and the **2-core** machine, then create it.
 3. Setup runs by itself (`setup.sh`: PostgreSQL 16, pnpm and the packages; several minutes the first time).
 4. If the editor asks whether you trust the authors of the files in this folder, choose **Trust Folder & Continue**. The app runs in a terminal, which Restricted Mode does not allow.
-5. `start.sh` then runs the app in a terminal. When the website is ready it opens in a new tab; otherwise open the **Ports** tab, then port 3000, then **Open in browser**.
+5. `start.sh` then runs the app in a terminal; it is ready when the log shows `API ready` and Next.js `Ready`. Open the site from the **Ports** tab: port 3000, then **Open in Browser**. GitHub asks you to sign in to GitHub the first time.
 
 ## Everyday use
 

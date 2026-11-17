@@ -36,4 +36,4 @@ PNPM_VERSION="$(node -p "require('./package.json').packageManager.replace(/^pnpm
 echo "Installing pnpm ${PNPM_VERSION}..."
 npm install -g "pnpm@${PNPM_VERSION}" || sudo npm install -g "pnpm@${PNPM_VERSION}"
 pnpm install --frozen-lockfile
-echo "Setup finished. The app starts with the codespace; its log is var/log/codespace-dev.log."
+echo "Setup finished. The app starts in a terminal when the editor connects (log: var/log/codespace-dev.log)."
